@@ -58,21 +58,35 @@ Welcome to the 30 Days of Voice Agents Challenge! This project will guide you th
 - `GET /redoc` - Alternative API documentation (ReDoc)
 
 ### 🎨 Frontend Features
+---
 
-- Modern, gradient-based design
-- Interactive FastAPI backend testing button
-- Real-time backend status monitoring
-- Responsive layout for all devices
-- Smooth animations and transitions
-- Static file serving with FastAPI StaticFiles
+## 🚀 Day 2 
 
-### 📝 FastAPI Specific Notes
+Today I built my first RESTful Text-to-Speech (TTS) endpoint using FastAPI and Murf's API:
 
-- The server runs on `http://127.0.0.1:8000` by default with Uvicorn
-- Auto-reload is enabled for development (detects file changes)
-- Static files are automatically served from the `/static` directory
-- Templates use Jinja2 syntax for dynamic content
-- JSON responses are automatically serialized with proper content-type headers
-- Interactive API documentation available at `/docs` and `/redoc`
-- Full async/await support for high-performance applications
-- Type hints provide automatic request/response validation
+- ✅ Created `/tts/generate` endpoint in FastAPI backend
+- ✅ Secured Murf API key using `.env` file
+- ✅ Integrated Murf's REST TTS API to generate audio from text
+- ✅ Endpoint returns a URL to the generated audio file
+
+**How it works:**
+- Send a POST request to `/tts/generate` with your text
+- The server calls Murf's API and responds with an audio file URL
+- Tested via FastAPI's interactive docs at `localhost:8000/docs`
+
+**Sample FastAPI handler:**
+```python
+@app.post("/tts/generate")
+async def generate_tts(request: TTSRequest):
+    api_key = os.getenv("MURF_API_KEY")
+    url = "https://api.murf.ai/v1/speech/generate"
+    payload = {"text": request.text, "voiceId": "en-US-natalie", "format": "mp3"}
+    headers = {"api-key": api_key, "Content-Type": "application/json"}
+    response = requests.post(url, json=payload, headers=headers)
+    data = response.json()
+    audio_url = data.get("audioFile")
+    return {"audio_url": audio_url}
+```
+
+---
+w
