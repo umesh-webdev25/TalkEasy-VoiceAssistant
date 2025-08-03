@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>  
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>30 Days of Voice Agents | Day 01</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #e0f7fa, #ffffff);
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #ccc;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.3rem;
+            color: #006064;
+        }
+
+        .subtitle {
+            font-style: italic;
+            color: #555;
+        }
+
+        .card {
+            background: #fff;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
+        .card h2 {
+            color: #00796b;
+        }
+
+        .btn {
+            background-color: #00897b;
+            color: white;
+            padding: 0.7rem 1.5rem;
+            font-size: 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #00695c;
+        }
+
+        .message-area {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #e0f2f1;
+            border-left: 4px solid #00796b;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #004d40;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Day 01: Voice Agent Challenge</h1>
+            <p class="subtitle">FastAPI Starter Project</p>
+        </header>
+        
+        <main>
+            <div class="card">
+                <h2>Test Message from Backend</h2>
+                <p>Click the button to see a response from your FastAPI backend:</p>
+                <button id="getMessageBtn" class="btn">Fetch Message</button>
+                <div id="messageDisplay" class="message-area"></div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="/static/app.js"></script>
+</body>
+</html>
