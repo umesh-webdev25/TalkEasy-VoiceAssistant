@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>30 Days of Voice Agents | Day 01</title>
+    <title>30 Days of Voice Agents | Day 03</title>
     <link rel="stylesheet" href="/static/style.css">
     <style>
         body {
@@ -79,17 +79,36 @@
 <body>
     <div class="container">
         <header>
-            <h1>Day 01: Voice Agent Challenge</h1>
-            <p class="subtitle">FastAPI Starter Project</p>
+            <h1>Day 03: Voice Agent Challenge</h1>
+            <p class="subtitle">Text-to-Speech with Murf AI</p>
         </header>
 
         <main>
+            <div class="card">
+                <h2>Generate Audio</h2>
+                <p>Enter text below to generate speech using Murf AI:</p>
+                <form id="ttsForm">
+                    <textarea id="textInput" placeholder="Enter text to convert to speech..." rows="4"
+                        style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; border: 1px solid #ccc; border-radius: 4px; font-family: inherit;"
+                        required></textarea>
+                    <button type="submit" class="btn">Generate Audio</button>
+                </form>
+                <div id="audioContainer" style="margin-top: 1rem; display: none;">
+                    <audio id="audioPlayer" controls style="width: 100%;">
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>
+                <div id="ttsMessage" class="message-area" style="display: none;"></div>
+            </div>
+
             <div class="card">
                 <h2>Test Message from Backend</h2>
                 <p>Click the button to see a response from your FastAPI backend:</p>
                 <button id="getMessageBtn" class="btn">Fetch Message</button>
                 <div id="messageDisplay" class="message-area"></div>
             </div>
+
+
         </main>
     </div>
 

@@ -57,7 +57,6 @@ Welcome to the 30 Days of Voice Agents Challenge! This project will guide you th
 - `GET /docs` - Interactive API documentation (Swagger UI)
 - `GET /redoc` - Alternative API documentation (ReDoc)
 
-### 🎨 Frontend Features
 ---
 
 ## 🚀 Day 2 
@@ -88,5 +87,20 @@ async def generate_tts(request: TTSRequest):
     return {"audio_url": audio_url}
 ```
 
----
-w
+
+## 🚀 Day 3: Text-to-Speech Integration
+
+Today I successfully integrated Murf AI's text-to-speech API into the voice agent system:
+
+### ✅ Completed Tasks:
+- **Enhanced Frontend**: Added text input field and submit button to the HTML page
+- **Audio Player**: Integrated HTML5 `<audio>` element for seamless audio playback
+- **API Integration**: Connected frontend to `/tts/generate` endpoint via POST requests
+- **User Experience**: Added loading states and error handling for better UX
+- **Auto-play Feature**: Generated audio automatically plays when received
+
+### 🔧 Technical Implementation:
+- **Frontend**: Updated `templates/index.html` with new form and audio player
+- **JavaScript**: Enhanced `static/app.js` with TTS form handling and audio playback
+- **API Communication**: Uses fetch API to send text to Murf AI and receive audio URLs
+- **Error Handling**: Comprehensive error messages and fallback mechanisms
