@@ -104,3 +104,36 @@ Today I successfully integrated Murf AI's text-to-speech API into the voice agen
 - **JavaScript**: Enhanced `static/app.js` with TTS form handling and audio playback
 - **API Communication**: Uses fetch API to send text to Murf AI and receive audio URLs
 - **Error Handling**: Comprehensive error messages and fallback mechanisms
+
+---
+
+## 🚀 Day 4: Echo Bot - Voice Recording & Playback
+
+Today I successfully built an Echo Bot that records your voice and plays it back to you:
+
+### ✅ Completed Tasks:
+- **Echo Bot Section**: Added new "Echo Bot" section under the TTS section with `<h1>` tag
+- **MediaRecorder API**: Implemented browser's MediaRecorder API for audio recording
+- **Recording Controls**: Created "Start Recording" and "Stop Recording" buttons
+- **Audio Playback**: Integrated HTML `<audio>` element for playing recorded audio
+- **Microphone Access**: Handled user permissions and browser compatibility
+- **Real-time Feedback**: Added recording status messages and button state management
+
+### 🔧 Technical Implementation:
+- **Frontend**: Updated `templates/index.html` with Echo Bot section containing recording controls
+- **JavaScript**: Enhanced `static/app.js` with complete MediaRecorder implementation
+- **Audio Processing**: Records audio chunks and creates Blob for playback
+- **User Experience**: Auto-plays recorded audio after stopping recording
+- **Error Handling**: Graceful handling of microphone access denials and browser support
+
+### 📱 Features:
+- **One-click Recording**: Simple Start/Stop interface
+- **Instant Playback**: Immediate audio playback after recording
+- **Visual Feedback**: Clear status messages during recording
+- **Cross-browser**: Works on modern browsers supporting MediaRecorder API
+
+### 🎥 Demo Video:
+- **LinkedIn Post**: Successfully posted working Echo Bot demo on LinkedIn
+- **Video Location**: `screenshots/Day 04/30 Days of Voice Agents _ Day 04 - Google Chrome 2025-08-05 11-37-38.mp4`
+
+---
