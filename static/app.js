@@ -1,4 +1,4 @@
-// FastAPI Voice Agents App with Text-to-Speech functionality
+// FastAPI Voice Agents App with Text-to-Speech and Echo Bot functionality
 
 document.addEventListener('DOMContentLoaded', function () {
     console.log('FastAPI Voice Agents App Loaded!');
@@ -88,6 +88,75 @@ document.addEventListener('DOMContentLoaded', function () {
             } catch (error) {
                 ttsMessage.textContent = 'Error generating audio: ' + error.message;
                 console.error('Error:', error);
+            }
+        });
+    }
+
+    // Echo Bot functionality
+    const startRecordingBtn = document.getElementById('startRecordingBtn');
+    const stopRecordingBtn = document.getElementById('stopRecordingBtn');
+    const recordingStatus = document.getElementById('recordingStatus');
+    const echoAudioContainer = document.getElementById('echoAudioContainer');
+    const echoAudioPlayer = document.getElementById('echoAudioPlayer');
+
+    let mediaRecorder;
+    let audioChunks = [];
+
+    if (startRecordingBtn && stopRecordingBtn) {
+        startRecordingBtn.addEventListener('click', async () => {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert('Your browser does not support audio recording.');
+                return;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.onstart = () => {
+                    audioChunks = [];
+                    recordingStatus.style.display = 'block';
+                    recordingStatus.textContent = 'Recording...';
+                    startRecordingBtn.disabled = true;
+                    stopRecordingBtn.disabled = false;
+                    echoAudioContainer.style.display = 'none';
+                    echoAudioPlayer.src = '';
+                };
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    echoAudioPlayer.src = audioUrl;
+                    echoAudioContainer.style.display = 'block';
+                    recordingStatus.textContent = 'Recording stopped. Playing back...';
+                    
+                    // Auto-play the recorded audio
+                    echoAudioPlayer.play().catch(error => {
+                        console.log('Auto-play prevented:', error);
+                    });
+
+                    startRecordingBtn.disabled = false;
+                    stopRecordingBtn.disabled = true;
+                };
+
+                mediaRecorder.start();
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                alert('Error accessing microphone: ' + error.message);
+            }
+        });
+
+        stopRecordingBtn.addEventListener('click', () => {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                // Stop all tracks to release the microphone
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
             }
         });
     }

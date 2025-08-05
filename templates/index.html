@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>30 Days of Voice Agents | Day 03</title>
+    <title>30 Days of Voice Agents | Day 04</title>
     <link rel="stylesheet" href="/static/style.css">
     <style>
         body {
@@ -41,6 +41,7 @@
             background: #fff;
             padding: 1.5rem;
             margin-top: 2rem;
+            border: 1px solid #ccc;
             border-radius: 12px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
         }
@@ -79,13 +80,13 @@
 <body>
     <div class="container">
         <header>
-            <h1>Day 03: Voice Agent Challenge</h1>
-            <p class="subtitle">Text-to-Speech with Murf AI</p>
+            <h1>Day 04: Voice Agent Challenge</h1>
+            <p class="subtitle">Making an Eco Bot</p>
         </header>
 
         <main>
             <div class="card">
-                <h2>Generate Audio</h2>
+                <h1>Generate Audio</h1>
                 <p>Enter text below to generate speech using Murf AI:</p>
                 <form id="ttsForm">
                     <textarea id="textInput" placeholder="Enter text to convert to speech..." rows="4"
@@ -93,16 +94,29 @@
                         required></textarea>
                     <button type="submit" class="btn">Generate Audio</button>
                 </form>
-                <div id="audioContainer" style="margin-top: 1rem; display: none;">
-                    <audio id="audioPlayer" controls style="width: 100%;">
+                <audio id="audioPlayer" controls style="width: 100%;">
                         Your browser does not support the audio element.
                     </audio>
                 </div>
                 <div id="ttsMessage" class="message-area" style="display: none;"></div>
+                        <div id="audioContainer" style="margin-top: 1rem; display: none;">
             </div>
 
             <div class="card">
-                <h2>Test Message from Backend</h2>
+                <h1>Echo Bot</h1>
+                <p>Record your voice and play it back:</p>
+                <button id="startRecordingBtn" class="btn">Start Recording</button>
+                <button id="stopRecordingBtn" class="btn" disabled>Stop Recording</button>
+                <div id="recordingStatus" class="message-area" style="display: none;"></div>
+                <div id="echoAudioContainer" style="margin-top: 1rem; display: none;">
+                    <audio id="echoAudioPlayer" controls style="width: 100%;">
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>
+            </div>`
+
+            <div class="card">
+                <h1>Test Message from Backend</h1>
                 <p>Click the button to see a response from your FastAPI backend:</p>
                 <button id="getMessageBtn" class="btn">Fetch Message</button>
                 <div id="messageDisplay" class="message-area"></div>
