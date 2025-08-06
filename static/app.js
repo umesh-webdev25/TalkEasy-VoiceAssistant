@@ -134,8 +134,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     const audioUrl = URL.createObjectURL(audioBlob);
                     echoAudioPlayer.src = audioUrl;
                     echoAudioContainer.style.display = 'block';
-                    recordingStatus.textContent = 'Recording stopped. Playing back...';
-                    
+
+                    // Upload the audio file to server
+                    uploadAudioToServer(audioBlob);
+
                     // Auto-play the recorded audio
                     echoAudioPlayer.play().catch(error => {
                         console.log('Auto-play prevented:', error);
@@ -159,5 +161,35 @@ document.addEventListener('DOMContentLoaded', function () {
                 mediaRecorder.stream.getTracks().forEach(track => track.stop());
             }
         });
+    }
+
+    // Upload audio file to server and update status message
+    async function uploadAudioToServer(audioBlob) {
+        const recordingStatus = document.getElementById('recordingStatus');
+        console.log('Starting uploadAudioToServer...');
+        recordingStatus.textContent = 'Uploading audio...';
+
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'recording.webm');
+        console.log('FormData prepared:', formData);
+
+        try {
+            const response = await fetch('/upload-audio', {
+                method: 'POST',
+                body: formData
+            });
+            console.log('Fetch response received:', response);
+
+            if (!response.ok) {
+                throw new Error(`Upload failed with status ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Response JSON:', data);
+            recordingStatus.textContent = `Upload successful: ${data.filename} (${data.size} bytes)`;
+        } catch (error) {
+            console.error('Upload error:', error);
+            recordingStatus.textContent = `Upload failed: ${error.message}`;
+        }
     }
 });

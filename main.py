@@ -1,10 +1,12 @@
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 import requests
 import os
+import uuid
+from typing import Dict
 from dotenv import load_dotenv
 import uvicorn
 
@@ -16,6 +18,11 @@ templates = Jinja2Templates(directory="templates")
 
 class TTSRequest(BaseModel):
     text: str
+
+# Create uploads directory if it doesn't exist
+UPLOAD_DIR = "uploads"
+if not os.path.exists(UPLOAD_DIR):
+    os.makedirs(UPLOAD_DIR)
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
@@ -48,6 +55,46 @@ async def generate_tts(request: TTSRequest):
     if not audio_url:
         raise HTTPException(status_code=500, detail="No audio URL returned.")
     return {"audio_url": audio_url}
+
+@app.post("/upload-audio")
+async def upload_audio_file(audio: UploadFile = File(...)) -> Dict:
+    """
+    Upload audio file endpoint for Day 5 task.
+    Receives audio file, saves to uploads folder, returns file metadata.
+    """
+    try:
+        # Validate file type
+        allowed_types = ['audio/wav', 'audio/mp3', 'audio/webm', 'audio/ogg', 'audio/m4a', 'audio/wave']
+        if audio.content_type not in allowed_types:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid file type. Allowed types: {', '.join(allowed_types)}"
+            )
+        
+        # Generate unique filename
+        file_extension = audio.filename.split('.')[-1] if '.' in audio.filename else 'webm'
+        unique_filename = f"{uuid.uuid4()}.{file_extension}"
+        file_path = os.path.join(UPLOAD_DIR, unique_filename)
+        
+        # Save file
+        with open(file_path, "wb") as buffer:
+            content = await audio.read()
+            buffer.write(content)
+        
+        # Get file info
+        file_size = os.path.getsize(file_path)
+        
+        return {
+            "success": True,
+            "filename": unique_filename,
+            "original_filename": audio.filename,
+            "content_type": audio.content_type,
+            "size": file_size,
+            "message": "Audio file uploaded successfully"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

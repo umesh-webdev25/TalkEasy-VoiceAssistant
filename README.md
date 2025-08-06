@@ -106,7 +106,6 @@ Today I successfully integrated Murf AI's text-to-speech API into the voice agen
 - **Error Handling**: Comprehensive error messages and fallback mechanisms
 
 ---
-
 ## 🚀 Day 4: Echo Bot - Voice Recording & Playback
 
 Today I successfully built an Echo Bot that records your voice and plays it back to you:
@@ -135,5 +134,28 @@ Today I successfully built an Echo Bot that records your voice and plays it back
 ### 🎥 Demo Video:
 - **LinkedIn Post**: Successfully posted working Echo Bot demo on LinkedIn
 - **Video Location**: `screenshots/Day 04/30 Days of Voice Agents _ Day 04 - Google Chrome 2025-08-05 11-37-38.mp4`
+
+---
+## 🚀 Day 5: Send Audio to the Server
+
+Today I enhanced the Echo Bot by adding audio upload functionality:
+
+### ✅ Completed Tasks:
+- **New API Endpoint**: Created `/upload-audio` POST endpoint in FastAPI backend to receive and save audio files to the `uploads` folder
+- **Frontend Upload**: Updated `static/app.js` to upload recorded audio to the server when recording stops
+- **UI Status**: Added real-time upload status messages in the UI to inform users of upload progress and results
+- **File Validation**: Backend validates audio file types and returns metadata (filename, content type, size) upon successful upload
+
+### 🔧 Technical Implementation:
+- **Backend**: Implemented file upload handling using FastAPI's `UploadFile` and saved files with unique UUID filenames
+- **Frontend**: Used `fetch` API with `FormData` to send audio blobs to the backend
+- **User Experience**: Displayed upload progress and success/failure messages dynamically in the UI
+
+### 📁 Uploads Folder:
+- Audio files are temporarily saved in the `uploads` directory for further processing or playback
+
+### 🧪 Testing:
+- Manual testing of recording, upload, and playback flow
+- Console logs added to frontend for debugging upload process
 
 ---
