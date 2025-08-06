@@ -154,8 +154,4 @@ Today I enhanced the Echo Bot by adding audio upload functionality:
 ### 📁 Uploads Folder:
 - Audio files are temporarily saved in the `uploads` directory for further processing or playback
 
-### 🧪 Testing:
-- Manual testing of recording, upload, and playback flow
-- Console logs added to frontend for debugging upload process
-
 ---
