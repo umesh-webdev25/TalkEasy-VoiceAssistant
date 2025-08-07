@@ -1,4 +1,4 @@
-// FastAPI Voice Agents App with Text-to-Speech and Echo Bot functionality
+43// FastAPI Voice Agents App with Text-to-Speech, Echo Bot, and Transcription functionality
 
 document.addEventListener('DOMContentLoaded', function () {
     console.log('FastAPI Voice Agents App Loaded!');
@@ -138,6 +138,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Upload the audio file to server
                     uploadAudioToServer(audioBlob);
 
+                    // Transcribe the audio
+                    transcribeAudio(audioBlob);
+
                     // Auto-play the recorded audio
                     echoAudioPlayer.play().catch(error => {
                         console.log('Auto-play prevented:', error);
@@ -190,6 +193,50 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (error) {
             console.error('Upload error:', error);
             recordingStatus.textContent = `Upload failed: ${error.message}`;
+        }
+    }
+
+    // Transcription functionality
+    async function transcribeAudio(audioBlob) {
+        const recordingStatus = document.getElementById('recordingStatus');
+        recordingStatus.textContent = 'Transcribing audio...';
+        recordingStatus.style.display = 'block';
+
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'recording.webm');
+
+        try {
+            const response = await fetch('/transcribe/file', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`Transcription failed with status ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            // Display transcription
+            const transcriptionDisplay = document.getElementById('transcriptionDisplay');
+            if (transcriptionDisplay) {
+                transcriptionDisplay.innerHTML = `
+                    <div class="transcription-result">
+                        <h3>Transcription:</h3>
+                        <p>${data.transcription}</p>
+                        <small>Confidence: ${(data.confidence * 100).toFixed(1)}%</small>
+                    </div>
+                `;
+                transcriptionDisplay.style.display = 'block';
+            }
+            
+            recordingStatus.textContent = 'Transcription completed!';
+            return data.transcription;
+            
+        } catch (error) {
+            console.error('Transcription error:', error);
+            recordingStatus.textContent = `Transcription failed: ${error.message}`;
+            return null;
         }
     }
 });

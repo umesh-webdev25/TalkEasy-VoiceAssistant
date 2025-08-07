@@ -4,6 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon"
+        href="https://st4.depositphotos.com/7662228/26265/v/450/depositphotos_262655382-stock-illustration-chat-bot-icon-background-virtual.jpg"
+        type="image/x-icon">
     <title>30 Days of Voice Agents | Day 04</title>
     <link rel="stylesheet" href="/static/style.css">
     <style>
@@ -95,11 +98,11 @@
                     <button type="submit" class="btn">Generate Audio</button>
                 </form>
                 <audio id="audioPlayer" controls style="width: 100%;">
-                        Your browser does not support the audio element.
-                    </audio>
-                </div>
-                <div id="ttsMessage" class="message-area" style="display: none;"></div>
-                        <div id="audioContainer" style="margin-top: 1rem; display: none;">
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+            <div id="ttsMessage" class="message-area" style="display: none;"></div>
+            <div id="audioContainer" style="margin-top: 1rem; display: none;">
             </div>
 
             <div class="card">
@@ -113,7 +116,11 @@
                         Your browser does not support the audio element.
                     </audio>
                 </div>
-            </div>`
+                <div id="transcriptionDisplay" class="transcription-box">
+                    <h3>📝 Transcription</h3>
+                    <p id="transcriptionText">Your transcription will appear here...</p>
+                </div>
+            </div>
 
             <div class="card">
                 <h1>Test Message from Backend</h1>

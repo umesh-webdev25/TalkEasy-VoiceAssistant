@@ -9,6 +9,7 @@ import uuid
 from typing import Dict
 from dotenv import load_dotenv
 import uvicorn
+import assemblyai as aai
 
 load_dotenv()
 
@@ -91,6 +92,65 @@ async def upload_audio_file(audio: UploadFile = File(...)) -> Dict:
             "content_type": audio.content_type,
             "size": file_size,
             "message": "Audio file uploaded successfully"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# AssemblyAI Configuration
+ASSEMBLYAI_API_KEY = os.getenv("ASSEMBLYAI_API_KEY")
+if not ASSEMBLYAI_API_KEY:
+    raise RuntimeError("ASSEMBLYAI_API_KEY environment variable is not set")
+
+aai.settings.api_key = ASSEMBLYAI_API_KEY
+
+@app.post("/transcribe/file")
+async def transcribe_audio_file(audio: UploadFile = File(...)) -> Dict:
+    """
+    Transcribe audio file endpoint for Day 6 task.
+    Accepts an audio file and returns the transcription using AssemblyAI.
+    """
+    try:
+        # Validate file type
+        allowed_types = [
+            'audio/wav', 'audio/mp3', 'audio/webm', 'audio/ogg', 
+            'audio/m4a', 'audio/wave', 'audio/mp4', 'audio/flac'
+        ]
+        if audio.content_type not in allowed_types:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid file type. Allowed types: {', '.join(allowed_types)}"
+            )
+        
+        # Read audio file content
+        audio_content = await audio.read()
+        
+        # Initialize AssemblyAI transcriber
+        transcriber = aai.Transcriber()
+        
+        # Transcribe the audio
+        transcript = transcriber.transcribe(audio_content)
+        
+        if transcript.status == aai.TranscriptStatus.error:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Transcription failed: {transcript.error}"
+            )
+        
+        return {
+            "success": True,
+            "transcription": transcript.text,
+            "confidence": transcript.confidence,
+            "audio_duration": transcript.audio_duration,
+            "words": [
+                {
+                    "text": word.text,
+                    "start": word.start,
+                    "end": word.end,
+                    "confidence": word.confidence
+                }
+                for word in transcript.words
+            ] if hasattr(transcript, 'words') else []
         }
         
     except Exception as e:
