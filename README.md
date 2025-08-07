@@ -155,3 +155,10 @@ Today I enhanced the Echo Bot by adding audio upload functionality:
 - Audio files are temporarily saved in the `uploads` directory for further processing or playback
 
 ---
+
+## 🚀 Day 6: Voice Agent Foundation
+
+
+<read_file>
+<path>README.md</path>
+</read_file>
