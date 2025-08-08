@@ -156,9 +156,43 @@ Today I enhanced the Echo Bot by adding audio upload functionality:
 
 ---
 
-## 🚀 Day 6: Voice Agent Foundation
+## 🚀 Day 6: Transcribe Voice
 
+Today I added the ability to transcribe uploaded audio using AssemblyAI:
 
+### ✅ Completed Tasks:
+- **Transcription Endpoint**: Created `/transcribe/file` POST endpoint in FastAPI backend to accept audio files and return transcribed text using AssemblyAI.
+- **File Validation**: Backend validates audio file types and handles errors gracefully.
+- **Frontend Integration**: Added JavaScript to send recorded audio to `/transcribe/file` and display the transcription and confidence in the UI.
+
+### 🔧 Technical Implementation:
+- **Backend**: Used AssemblyAI's Python SDK to transcribe audio files and return transcription, confidence, and word-level details.
+- **Frontend**: Added a function to upload audio and display the transcription result in the Echo Bot section.
+
+### 📱 Features:
+- **One-click Transcription**: Record and transcribe your voice in the browser.
+- **Visual Feedback**: Shows transcription and confidence score in the UI.
+
+---
+## 🚀 Day 7: Echo Bot with Murf AI Voice
+
+Today I upgraded the Echo Bot to repeat back what you said, but in a Murf AI voice:
+
+### ✅ Completed Tasks:
+- **Echo Endpoint**: Created `/tts/echo` POST endpoint in FastAPI backend.
+- **Transcribe & Synthesize**: The endpoint transcribes the uploaded audio using AssemblyAI, then sends the transcription to Murf's TTS API to generate new audio in a Murf voice.
+- **Frontend Update**: The Echo Bot now sends the recorded audio to `/tts/echo` and plays back the Murf-generated audio in the UI's `<audio>` element.
+- **Transcription Display**: Shows what you said and the confidence score before playing the Murf audio.
+
+### 🔧 Technical Implementation:
+- **Backend**: Combined AssemblyAI transcription and Murf TTS in a single endpoint. Returns the Murf audio URL, transcription, and confidence.
+- **Frontend**: Updated JavaScript to use `/tts/echo` and play the Murf audio, replacing the old echo playback.
+
+### 📱 Features:
+- **AI-Powered Echo**: Hear your own words repeated back in a Murf AI voice.
+- **Seamless Experience**: One-click recording, instant Murf playback, and transcription display.
+
+---
 <read_file>
 <path>README.md</path>
 </read_file>

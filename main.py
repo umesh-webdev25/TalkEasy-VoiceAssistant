@@ -156,5 +156,87 @@ async def transcribe_audio_file(audio: UploadFile = File(...)) -> Dict:
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/tts/echo")
+async def tts_echo(audio: UploadFile = File(...)) -> Dict:
+    """
+    Echo bot with Murf voice synthesis.
+    Accepts audio file, transcribes it using AssemblyAI, 
+    then generates audio using Murf TTS with the same text.
+    """
+    try:
+        # Validate file type
+        allowed_types = [
+            'audio/wav', 'audio/mp3', 'audio/webm', 'audio/ogg', 
+            'audio/m4a', 'audio/wave', 'audio/mp4', 'audio/flac'
+        ]
+        if audio.content_type not in allowed_types:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid file type. Allowed types: {', '.join(allowed_types)}"
+            )
+        
+        # Read audio file content
+        audio_content = await audio.read()
+        
+        # Initialize AssemblyAI transcriber
+        transcriber = aai.Transcriber()
+        
+        # Transcribe the audio
+        transcript = transcriber.transcribe(audio_content)
+        
+        if transcript.status == aai.TranscriptStatus.error:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Transcription failed: {transcript.error}"
+            )
+        
+        transcription_text = transcript.text
+        
+        # Generate audio using Murf TTS
+        api_key = os.getenv("MURF_API_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="Murf API key not set")
+        
+        url = "https://api.murf.ai/v1/speech/generate"
+        payload = {
+            "text": transcription_text,
+            "voiceId": "en-US-natalie",  # You can change this voice
+            "format": "mp3",
+            "speed": 100,
+            "pitch": 0
+        }
+        headers = {
+            "api-key": api_key,
+            "Content-Type": "application/json"
+        }
+        
+        response = requests.post(url, json=payload, headers=headers)
+        
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=f"Murf TTS failed: {response.text}"
+            )
+        
+        data = response.json()
+        audio_url = data.get("audioFile")
+        
+        if not audio_url:
+            raise HTTPException(
+                status_code=500,
+                detail="No audio URL returned from Murf"
+            )
+        
+        return {
+            "success": True,
+            "audio_url": audio_url,
+            "transcription": transcription_text,
+            "confidence": transcript.confidence,
+            "audio_duration": transcript.audio_duration
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
