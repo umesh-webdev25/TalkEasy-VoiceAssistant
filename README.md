@@ -192,7 +192,4 @@ Today I upgraded the Echo Bot to repeat back what you said, but in a Murf AI voi
 - **AI-Powered Echo**: Hear your own words repeated back in a Murf AI voice.
 - **Seamless Experience**: One-click recording, instant Murf playback, and transcription display.
 
----
-<read_file>
-<path>README.md</path>
-</read_file>
+
