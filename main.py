@@ -10,6 +10,7 @@ from typing import Dict
 from dotenv import load_dotenv
 import uvicorn
 import assemblyai as aai
+import google.generativeai as genai
 
 load_dotenv()
 
@@ -19,6 +20,11 @@ templates = Jinja2Templates(directory="templates")
 
 class TTSRequest(BaseModel):
     text: str
+
+class LLMQueryRequest(BaseModel):
+    text: str
+    max_tokens: int = 1000
+    temperature: float = 0.7
 
 # Create uploads directory if it doesn't exist
 UPLOAD_DIR = "uploads"
@@ -237,6 +243,87 @@ async def tts_echo(audio: UploadFile = File(...)) -> Dict:
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# Gemini API Configuration
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    print("⚠️  Warning: GEMINI_API_KEY environment variable is not set")
+    print("Please add GEMINI_API_KEY=your_api_key to your .env file")
+else:
+    genai.configure(api_key=GEMINI_API_KEY)
+
+@app.post("/llm/query")
+async def llm_query(request: LLMQueryRequest) -> Dict:
+    """
+    Query Google's Gemini API with text input.
+    Accepts text and returns AI-generated response.
+    """
+    try:
+        # Check if Gemini API key is configured
+        if not GEMINI_API_KEY:
+            raise HTTPException(
+                status_code=500,
+                detail="Gemini API key not configured. Please set GEMINI_API_KEY environment variable."
+            )
+        
+        # Validate input
+        if not request.text or not request.text.strip():
+            raise HTTPException(
+                status_code=400,
+                detail="Text input cannot be empty"
+            )
+        
+        # Initialize Gemini model
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        # Configure generation parameters
+        generation_config = genai.types.GenerationConfig(
+            max_output_tokens=request.max_tokens,
+            temperature=request.temperature
+        )
+        
+        # Generate response
+        response = model.generate_content(
+            request.text,
+            generation_config=generation_config
+        )
+        
+        # Extract response text
+        if not response.text:
+            raise HTTPException(
+                status_code=500,
+                detail="No response generated from Gemini API"
+            )
+        
+        return {
+            "success": True,
+            "query": request.text,
+            "response": response.text,
+            "model": "gemini-1.5-flash",
+            "usage": {
+                "prompt_tokens": response.usage_metadata.prompt_token_count if hasattr(response, 'usage_metadata') else None,
+                "completion_tokens": response.usage_metadata.candidates_token_count if hasattr(response, 'usage_metadata') else None,
+                "total_tokens": response.usage_metadata.total_token_count if hasattr(response, 'usage_metadata') else None
+            }
+        }
+        
+    except Exception as e:
+        # Handle specific Gemini API errors
+        if "API key" in str(e) or "authentication" in str(e).lower():
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid Gemini API key"
+            )
+        elif "quota" in str(e).lower() or "limit" in str(e).lower():
+            raise HTTPException(
+                status_code=429,
+                detail="Gemini API quota exceeded"
+            )
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Gemini API error: {str(e)}"
+            )
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
