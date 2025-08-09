@@ -192,4 +192,40 @@ Today I upgraded the Echo Bot to repeat back what you said, but in a Murf AI voi
 - **AI-Powered Echo**: Hear your own words repeated back in a Murf AI voice.
 - **Seamless Experience**: One-click recording, instant Murf playback, and transcription display.
 
+---
 
+## 🚀 Day 8: LLM Query Endpoint with Google Gemini API
+
+Today I integrated Google's Gemini API to create a powerful LLM query endpoint:
+
+### ✅ Completed Tasks:
+- **LLM Query Endpoint**: Created `/llm/query` POST endpoint in FastAPI backend
+- **Google Gemini Integration**: Integrated Google's Gemini API using the `google-generativeai` Python library
+- **Request Validation**: Added `LLMQueryRequest` Pydantic model for proper input validation
+- **Flexible Parameters**: Supports configurable max_tokens and temperature settings
+- **Comprehensive Error Handling**: Handles API key issues, quota limits, and empty inputs gracefully
+
+### 🔧 Technical Implementation:
+- **Backend**: Added Gemini API configuration and query endpoint with proper error handling
+- **API Model**: Uses `gemini-1.5-flash` model for text generation
+- **Environment**: Requires `GEMINI_API_KEY` in .env file
+- **Response Format**: Returns AI-generated response with model info and usage statistics
+
+### 📱 Features:
+- **Text-to-AI**: Send any text query and receive AI-generated responses
+- **Configurable**: Adjust max_tokens and temperature for different use cases
+- **Error Handling**: Clear error messages for API issues
+- **Ready for Integration**: Can be easily connected to frontend components
+
+### 🚀 Usage:
+```bash
+# Test the endpoint
+curl -X POST http://localhost:8000/llm/query \
+  -H "Content-Type: application/json" \
+  -d '{"text": "What are the benefits of voice AI?", "max_tokens": 500}'
+```
+
+### 🔑 Setup:
+Add your Gemini API key to `.env`:
+```
+GEMINI_API_KEY=your_api_key_here
