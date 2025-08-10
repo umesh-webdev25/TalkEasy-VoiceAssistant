@@ -7,7 +7,7 @@
     <link rel="shortcut icon"
         href="https://st4.depositphotos.com/7662228/26265/v/450/depositphotos_262655382-stock-illustration-chat-bot-icon-background-virtual.jpg"
         type="image/x-icon">
-    <title>30 Days of Voice Agents | Day 04</title>
+    <title>30 Days of Voice Agents | Voice Assistant</title>
     <link rel="stylesheet" href="/static/style.css">
     <style>
         body {
@@ -68,6 +68,11 @@
             background-color: #00695c;
         }
 
+        .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
         .message-area {
             margin-top: 1rem;
             padding: 1rem;
@@ -77,19 +82,41 @@
             font-weight: bold;
             color: #004d40;
         }
+
+        .transcription-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .transcription-box h3 {
+            color: #00796b;
+            margin-top: 0;
+        }
+
+        .transcription-result {
+            background: #fff;
+            border-left: 4px solid #00796b;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 4px;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
         <header>
-            <h1>Day 04: Voice Agent Challenge</h1>
-            <p class="subtitle">Making an Eco Bot</p>
+            <h1>Voice Agent Challenge</h1>
+            <p class="subtitle">30 Days of Voice Agents</p>
         </header>
 
         <main>
+            <!-- Text-to-Speech Section -->
             <div class="card">
-                <h1>Generate Audio</h1>
+                <h1>Text-to-Speech</h1>
                 <p>Enter text below to generate speech using Murf AI:</p>
                 <form id="ttsForm">
                     <textarea id="textInput" placeholder="Enter text to convert to speech..." rows="4"
@@ -101,10 +128,33 @@
                     Your browser does not support the audio element.
                 </audio>
             </div>
-            <div id="ttsMessage" class="message-area" style="display: none;"></div>
-            <div id="audioContainer" style="margin-top: 1rem; display: none;">
+
+            <!-- Voice to LLM Assistant -->
+            <div class="card">
+                <h1>Voice to LLM Assistant</h1>
+                <p>Record your voice to ask the AI assistant a question:</p>
+                <button id="startLLMRecordingBtn" class="btn">Start Recording</button>
+                <button id="stopLLMRecordingBtn" class="btn" disabled>Stop Recording</button>
+                <div id="llmRecordingStatus" class="message-area" style="display: none;"></div>
+                
+                <div id="llmTranscriptionDisplay" class="transcription-box">
+                    <h3>📝 Your Question</h3>
+                    <p id="llmTranscriptionText">Your question will appear here...</p>
+                </div>
+                
+                <div id="llmResponseDisplay" class="transcription-box">
+                    <h3>🤖 AI Response</h3>
+                    <p id="llmResponseText">AI response will appear here...</p>
+                </div>
+                
+                <div id="llmAudioContainer" style="margin-top: 1rem; display: none;">
+                    <audio id="llmAudioPlayer" controls style="width: 100%;">
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>
             </div>
 
+            <!-- Echo Bot -->
             <div class="card">
                 <h1>Echo Bot</h1>
                 <p>Record your voice and play it back:</p>
@@ -122,14 +172,13 @@
                 </div>
             </div>
 
+            <!-- Backend Test -->
             <div class="card">
                 <h1>Test Message from Backend</h1>
                 <p>Click the button to see a response from your FastAPI backend:</p>
                 <button id="getMessageBtn" class="btn">Fetch Message</button>
                 <div id="messageDisplay" class="message-area"></div>
             </div>
-
-
         </main>
     </div>
 

@@ -1,9 +1,9 @@
-// FastAPI Voice Agents App with Text-to-Speech, Echo Bot, and Transcription functionality
+// FastAPI Voice Agents App with Text-to-Speech, Echo Bot, and Voice-to-LLM functionality
 
 document.addEventListener('DOMContentLoaded', function () {
     console.log('FastAPI Voice Agents App Loaded!');
 
-    // Existing functionality for backend message
+    // Backend message functionality
     const getMessageBtn = document.getElementById('getMessageBtn');
     const messageDisplay = document.getElementById('messageDisplay');
 
@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const audioUrl = data.audio_url;
 
                 if (!audioUrl) {
-                    throw new Error('No audio URL received');
+                    throw new Error('No audio URL returned');
                 }
 
                 audioPlayer.src = audioUrl;
@@ -138,19 +138,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     recordingStatus.textContent = 'Processing recording...';
                     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
 
-                    // Use the new /tts/echo endpoint for Murf voice synthesis
                     try {
-                        await processMurfEcho(audioBlob);
+                        await processEcho(audioBlob);
                     } catch (error) {
                         console.error('Echo processing error:', error);
                         recordingStatus.textContent = `Error: ${error.message}`;
                     } finally {
-                        // Stop all tracks to release the microphone
                         stream.getTracks().forEach(track => track.stop());
                     }
                 };
 
-                mediaRecorder.start(100); // Collect data every 100ms
+                mediaRecorder.start(100);
             } catch (error) {
                 console.error('Microphone access error:', error);
                 recordingStatus.textContent = `Error: ${error.message}`;
@@ -165,20 +163,14 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Process Murf echo
-    async function processMurfEcho(audioBlob) {
+    // Echo Bot functionality
+    async function processEcho(audioBlob) {
         const recordingStatus = document.getElementById('recordingStatus');
         const transcriptionDisplay = document.getElementById('transcriptionDisplay');
-        const echoAudioPlayer = document.getElementById('echoAudioPlayer');
         const echoAudioContainer = document.getElementById('echoAudioContainer');
+        const echoAudioPlayer = document.getElementById('echoAudioPlayer');
 
-        if (!recordingStatus || !echoAudioPlayer || !echoAudioContainer) {
-            throw new Error('Required DOM elements not found');
-        }
-
-        recordingStatus.textContent = 'Processing with Murf AI...';
-        recordingStatus.style.display = 'block';
-
+        recordingStatus.textContent = 'Processing recording...';
         const formData = new FormData();
         formData.append('audio', audioBlob, 'recording.webm');
 
@@ -190,7 +182,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.detail || `Murf echo failed with status ${response.status}`);
+                throw new Error(errorData.detail || `Echo processing failed with status ${response.status}`);
             }
 
             const data = await response.json();
@@ -199,113 +191,143 @@ document.addEventListener('DOMContentLoaded', function () {
                 throw new Error(data.detail || 'Unknown error occurred');
             }
 
-            // Display transcription if element exists
-            if (transcriptionDisplay) {
-                transcriptionDisplay.innerHTML = `
-                    <div class="transcription-result">
-                        <h3>You said:</h3>
-                        <p>"${data.transcription}"</p>
-                        ${data.confidence ? `<small>Confidence: ${(data.confidence * 100).toFixed(1)}%</small>` : ''}
-                    </div>
-                `;
-                transcriptionDisplay.style.display = 'block';
-            }
+            transcriptionDisplay.innerHTML = `
+                <div class="transcription-result">
+                    <h3>You said:</h3>
+                    <p>"${data.transcription}"</p>
+                    ${data.confidence ? `<small>Confidence: ${(data.confidence * 100).toFixed(1)}%</small>` : ''}
+                </div>
+            `;
+            transcriptionDisplay.style.display = 'block';
 
-            // Set up Murf audio player
             echoAudioPlayer.src = data.audio_url;
             echoAudioContainer.style.display = 'block';
 
-            recordingStatus.textContent = 'Murf voice generated! Click Play to hear your echo.';
+            recordingStatus.textContent = 'Echo response ready!';
+        } catch (error) {
+            console.error('Echo processing error', error);
+            recordingStatus.textContent = `Error: ${error.message}`;
+        }
+    }
 
-            // Auto-play the Murf audio
-            echoAudioPlayer.play().catch(error => {
+    // Voice to LLM Assistant functionality
+    const startLLMRecordingBtn = document.getElementById('startLLMRecordingBtn');
+    const stopLLMRecordingBtn = document.getElementById('stopLLMRecordingBtn');
+    const llmRecordingStatus = document.getElementById('llmRecordingStatus');
+    const llmTranscriptionDisplay = document.getElementById('llmTranscriptionDisplay');
+    const llmTranscriptionText = document.getElementById('llmTranscriptionText');
+    const llmResponseText = document.getElementById('llmResponseText');
+    const llmAudioContainer = document.getElementById('llmAudioContainer');
+    const llmAudioPlayer = document.getElementById('llmAudioPlayer');
+
+    let llmMediaRecorder;
+    let llmAudioChunks = [];
+
+    if (startLLMRecordingBtn && stopLLMRecordingBtn) {
+        startLLMRecordingBtn.addEventListener('click', async () => {
+            if (!navigator.mediaDevices?.getUserMedia) {
+                alert('Your browser does not support audio recording or you may need to allow microphone access.');
+                return;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                llmMediaRecorder = new MediaRecorder(stream);
+
+                llmMediaRecorder.onstart = () => {
+                    llmAudioChunks = [];
+                    llmRecordingStatus.style.display = 'block';
+                    llmRecordingStatus.textContent = 'Recording...';
+                    startLLMRecordingBtn.disabled = true;
+                    stopLLMRecordingBtn.disabled = false;
+                    llmAudioContainer.style.display = 'none';
+                    llmAudioPlayer.src = '';
+                };
+
+                llmMediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        llmAudioChunks.push(event.data);
+                    }
+                };
+
+                llmMediaRecorder.onstop = async () => {
+                    llmRecordingStatus.textContent = 'Processing with AI...';
+                    const audioBlob = new Blob(llmAudioChunks, { type: 'audio/webm' });
+                    
+                    try {
+                        await processLLMQuery(audioBlob);
+                    } catch (error) {
+                        console.error('LLM processing error:', error);
+                        llmRecordingStatus.textContent = `Error: ${error.message}`;
+                    } finally {
+                        stream.getTracks().forEach(track => track.stop());
+                    }
+                };
+
+                llmMediaRecorder.start(100);
+            } catch (error) {
+                console.error('Microphone access error:', error);
+                llmRecordingStatus.textContent = `Error: ${error.message}`;
+                llmRecordingStatus.style.display = 'block';
+            }
+        });
+
+        stopLLMRecordingBtn.addEventListener('click', () => {
+            if (llmMediaRecorder?.state === 'recording') {
+                llmMediaRecorder.stop();
+            }
+        });
+    }
+
+    // Voice to LLM Assistant functionality
+    async function processLLMQuery(audioBlob) {
+        llmRecordingStatus.textContent = 'Processing with AI...';
+        llmRecordingStatus.style.display = 'block';
+
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'recording.webm');
+
+        try {
+            const response = await fetch('/llm/query-audio', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || `AI processing failed with status ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.detail || 'Unknown error occurred');
+            }
+
+            // Display transcription
+            llmTranscriptionText.textContent = data.transcription;
+            llmTranscriptionDisplay.style.display = 'block';
+
+            // Display response
+            llmResponseText.textContent = data.llm_response;
+
+            // Set up audio player
+            llmAudioPlayer.src = data.audio_url;
+            llmAudioContainer.style.display = 'block';
+
+            llmRecordingStatus.textContent = 'AI response ready! Click Play to hear the answer.';
+
+            // Auto-play the audio
+            llmAudioPlayer.play().catch(error => {
                 console.log('Auto-play prevented:', error);
-                recordingStatus.textContent = 'Audio ready (click play to listen)';
+                llmRecordingStatus.textContent = 'AI response ready (click play to listen)';
             });
 
             return data;
 
         } catch (error) {
-            console.error('Murf echo error:', error);
-            recordingStatus.textContent = `Processing failed: ${error.message}`;
-            throw error; // Re-throw for calling function to handle
-        }
-    }
-
-    // Keep old functions for backward compatibility
-    async function uploadAudioToServer(audioBlob) {
-        const recordingStatus = document.getElementById('recordingStatus');
-        if (!recordingStatus) return;
-
-        recordingStatus.textContent = 'Uploading audio...';
-
-        const formData = new FormData();
-        formData.append('audio', audioBlob, 'recording.webm');
-
-        try {
-            const response = await fetch('/upload-audio', {
-                method: 'POST',
-                body: formData
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.detail || `Server responded with ${response.status}`);
-            }
-
-            const data = await response.json();
-            recordingStatus.textContent = `Upload successful: ${data.filename} (${data.size} bytes)`;
-            return data;
-        } catch (error) {
-            console.error('Upload error:', error);
-            recordingStatus.textContent = `Upload failed: ${error.message}`;
-            throw error;
-        }
-    }
-
-    async function transcribeAudio(audioBlob) {
-        const recordingStatus = document.getElementById('recordingStatus');
-        const transcriptionDisplay = document.getElementById('transcriptionDisplay');
-
-        if (!recordingStatus) return null;
-
-        recordingStatus.textContent = 'Transcribing audio...';
-        recordingStatus.style.display = 'block';
-
-        const formData = new FormData();
-        formData.append('audio', audioBlob, 'recording.webm');
-
-        try {
-            const response = await fetch('/transcribe/file', {
-                method: 'POST',
-                body: formData
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.detail || `Transcription failed with status ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            // Display transcription if element exists
-            if (transcriptionDisplay) {
-                transcriptionDisplay.innerHTML = `
-                    <div class="transcription-result">
-                        <h3>Transcription:</h3>
-                        <p>${data.transcription}</p>
-                        ${data.confidence ? `<small>Confidence: ${(data.confidence * 100).toFixed(1)}%</small>` : ''}
-                    </div>
-                `;
-                transcriptionDisplay.style.display = 'block';
-            }
-
-            recordingStatus.textContent = 'Transcription completed!';
-            return data.transcription;
-
-        } catch (error) {
-            console.error('Transcription error:', error);
-            recordingStatus.textContent = `Transcription failed: ${error.message}`;
+            console.error('LLM processing error:', error);
+            llmRecordingStatus.textContent = `Processing failed: ${error.message}`;
             throw error;
         }
     }
