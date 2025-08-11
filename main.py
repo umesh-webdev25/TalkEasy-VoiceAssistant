@@ -6,11 +6,12 @@ from pydantic import BaseModel
 import requests
 import os
 import uuid
-from typing import Dict
+from typing import Dict, List
 from dotenv import load_dotenv
 import uvicorn
 import assemblyai as aai
 import google.generativeai as genai
+from chat_history import chat_store
 
 load_dotenv()
 
@@ -488,6 +489,237 @@ async def llm_query_audio(audio: UploadFile = File(...)) -> Dict:
                 status_code=500,
                 detail=f"Processing error: {str(e)}"
             )
+
+@app.post("/agent/chat/{session_id}")
+async def agent_chat(session_id: str, audio: UploadFile = File(...)) -> Dict:
+    """
+    Chat endpoint with history for Day 10.
+    Accepts audio file, transcribes it, processes with LLM using chat history,
+    and returns audio response. Stores conversation in session history.
+    """
+    try:
+        # Check if required API keys are configured
+        if not GEMINI_API_KEY:
+            raise HTTPException(
+                status_code=500,
+                detail="Gemini API key not configured. Please set GEMINI_API_KEY environment variable."
+            )
+        
+        # Validate file type
+        allowed_types = [
+            'audio/wav', 'audio/mp3', 'audio/webm', 'audio/ogg', 
+            'audio/m4a', 'audio/wave', 'audio/mp4', 'audio/flac'
+        ]
+        if audio.content_type not in allowed_types:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid file type. Allowed types: {', '.join(allowed_types)}"
+            )
+        
+        # Read audio file content
+        audio_content = await audio.read()
+        
+        # Initialize AssemblyAI transcriber
+        transcriber = aai.Transcriber()
+        
+        # Transcribe the audio
+        transcript = transcriber.transcribe(audio_content)
+        
+        if transcript.status == aai.TranscriptStatus.error:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Transcription failed: {transcript.error}"
+            )
+        
+        transcription_text = transcript.text
+        
+        if not transcription_text or not transcription_text.strip():
+            raise HTTPException(
+                status_code=400,
+                detail="No speech detected in audio"
+            )
+        
+        # Store user message in chat history
+        chat_store.add_message(session_id, "user", transcription_text)
+        
+        # Get chat history for context
+        chat_history = chat_store.get_session_messages(session_id)
+        
+        # Initialize Gemini model
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        # Build prompt with chat history
+        if chat_history:
+            # Create conversation context
+            conversation_context = "\n".join([
+                f"{msg['role']}: {msg['content']}" 
+                for msg in chat_history[-10:]  # Last 10 messages for context
+            ])
+            prompt = f"""You are a helpful AI assistant. Here's the conversation history:
+
+{conversation_context}
+
+Please provide a natural, conversational response to the user's latest message: {transcription_text}
+
+Keep your response concise and under 2800 characters."""
+        else:
+            prompt = f"Please provide a concise response to: {transcription_text}. Keep your response under 2800 characters."
+        
+        generation_config = genai.types.GenerationConfig(
+            max_output_tokens=1000,
+            temperature=0.7
+        )
+        
+        response = model.generate_content(
+            prompt,
+            generation_config=generation_config
+        )
+        
+        if not response.text:
+            raise HTTPException(
+                status_code=500,
+                detail="No response generated from Gemini API"
+            )
+        
+        llm_response = response.text
+        
+        # Store assistant response in chat history
+        chat_store.add_message(session_id, "assistant", llm_response)
+        
+        # Handle Murf TTS with 3000 character limit
+        api_key = os.getenv("MURF_API_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="Murf API key not set")
+        
+        # Split response if too long (3000 character limit)
+        max_chars = 2800  # Leave some buffer
+        if len(llm_response) > max_chars:
+            # Split into chunks of complete sentences
+            sentences = llm_response.replace('!', '.').replace('?', '.').split('.')
+            chunks = []
+            current_chunk = ""
+            
+            for sentence in sentences:
+                sentence = sentence.strip()
+                if not sentence:
+                    continue
+                    
+                if len(current_chunk + sentence + '.') <= max_chars:
+                    current_chunk += sentence + '.'
+                else:
+                    if current_chunk:
+                        chunks.append(current_chunk.strip())
+                    current_chunk = sentence + '.'
+            
+            if current_chunk:
+                chunks.append(current_chunk.strip())
+            
+            # Process first chunk for now (simplified approach)
+            text_to_speak = chunks[0] if chunks else llm_response[:max_chars]
+        else:
+            text_to_speak = llm_response
+        
+        # Generate audio using Murf TTS
+        url = "https://api.murf.ai/v1/speech/generate"
+        payload = {
+            "text": text_to_speak,
+            "voiceId": "en-US-natalie",
+            "format": "mp3",
+            "speed": 100,
+            "pitch": 0
+        }
+        headers = {
+            "api-key": api_key,
+            "Content-Type": "application/json"
+        }
+        
+        tts_response = requests.post(url, json=payload, headers=headers)
+        
+        if tts_response.status_code != 200:
+            raise HTTPException(
+                status_code=tts_response.status_code,
+                detail=f"Murf TTS failed: {tts_response.text}"
+            )
+        
+        tts_data = tts_response.json()
+        audio_url = tts_data.get("audioFile")
+        
+        if not audio_url:
+            raise HTTPException(
+                status_code=500,
+                detail="No audio URL returned from Murf"
+            )
+        
+        # Get current conversation history
+        conversation_history = chat_store.get_session_history(session_id)
+        
+        return {
+            "success": True,
+            "transcription": transcription_text,
+            "llm_response": llm_response,
+            "audio_url": audio_url,
+            "model": "gemini-1.5-flash",
+            "tts_voice": "en-US-natalie",
+            "response_length": len(llm_response),
+            "session_id": session_id,
+            "conversation_history": conversation_history,
+            "message_count": len(conversation_history)
+        }
+        
+    except Exception as e:
+        # Handle specific errors
+        if "API key" in str(e) or "authentication" in str(e).lower():
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid API key"
+            )
+        elif "quota" in str(e).lower() or "limit" in str(e).lower():
+            raise HTTPException(
+                status_code=429,
+                detail="API quota exceeded"
+            )
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Processing error: {str(e)}"
+            )
+
+@app.get("/agent/chat/{session_id}/history")
+async def get_chat_history(session_id: str) -> Dict:
+    """
+    Get chat history for a specific session.
+    """
+    try:
+        history = chat_store.get_session_history(session_id)
+        return {
+            "success": True,
+            "session_id": session_id,
+            "messages": history,
+            "message_count": len(history)
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving chat history: {str(e)}"
+        )
+
+@app.delete("/agent/chat/{session_id}")
+async def clear_chat_history(session_id: str) -> Dict:
+    """
+    Clear chat history for a specific session.
+    """
+    try:
+        chat_store.clear_session(session_id)
+        return {
+            "success": True,
+            "session_id": session_id,
+            "message": "Chat history cleared successfully"
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error clearing chat history: {str(e)}"
+        )
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
