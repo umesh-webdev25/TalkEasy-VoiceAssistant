@@ -284,3 +284,78 @@ Now it feels like talking to an actual assistant—not just pressing buttons! Th
 ### 🎥 Demo Video:
 - **LinkedIn Post**: Successfully posted working conversation mode demo
 - **Video Location**: `media/Day 09/2025-08-10 12-57-18.mp4`
+
+---
+
+## 🗣️ Day 10: Chat History - The AI That Remembers Everything! 🧠💬
+
+Today I built the ultimate conversational AI with **persistent chat history** - your AI assistant now remembers every conversation, creating a truly intelligent, context-aware experience!
+
+### ✅ Completed Tasks:
+- **Chat History Datastore**: Implemented in-memory datastore for storing conversation history by session_id
+- **Enhanced Agent Endpoint**: Created `/agent/chat/{session_id}` endpoint that accepts audio input and maintains conversation context
+- **Session Management**: Added session_id parameter to URL for persistent conversations
+- **Conversation Context**: AI now uses previous messages as context for more intelligent responses
+- **History Viewer**: Added real-time chat history display with refresh and clear functionality
+- **Auto-recording**: Recording automatically starts after AI response finishes
+
+### 🔧 Technical Implementation:
+
+**Backend Architecture:**
+- **Datastore**: `chat_history.py` with in-memory storage using `ChatHistoryStore` class
+- **Session-based**: Each conversation stored with unique session_id
+- **Message Format**: Stores role (user/assistant), content, and timestamp
+- **Context Integration**: AI responses include conversation history for context-aware answers
+
+**API Endpoints:**
+- `POST /agent/chat/{session_id}` - Main chat endpoint with history
+- `GET /agent/chat/{session_id}/history` - Retrieve conversation history
+- `DELETE /agent/chat/{session_id}` - Clear conversation history
+
+**Frontend Features:**
+- **URL Session Management**: Session ID stored in URL parameters
+- **Real-time History**: Live chat history display with message styling
+- **Auto-refresh**: History updates after each conversation
+- **Controls**: Refresh and clear history buttons
+- **Visual Feedback**: Styled message bubbles for user/assistant messages
+
+### 📱 Features:
+- **Persistent Conversations**: AI remembers previous interactions
+- **Context-Aware Responses**: Responses consider entire conversation history
+- **Session Management**: Unique sessions for different conversations
+- **Visual History**: Real-time conversation display
+- **One-click Controls**: Easy history management
+
+### 🎙️ Conversation Flow:
+1. **Start**: URL automatically includes session_id
+2. **Record**: Speak your question
+3. **Process**: Audio → STT → LLM with history → TTS
+4. **Respond**: AI provides context-aware response
+5. **Store**: Both user and AI messages saved to history
+6. **Display**: Real-time conversation history shown
+7. **Continue**: Auto-starts recording for next question
+
+### 🚀 Usage:
+```bash
+# Start a conversation
+curl -X POST http://localhost:8000/agent/chat/your-session-id \
+  -F "audio=@your_audio_file.wav"
+
+# Get conversation history
+curl http://localhost:8000/agent/chat/your-session-id/history
+
+# Clear history
+curl -X DELETE http://localhost:8000/agent/chat/your-session-id
+```
+
+### 💡 Experience:
+Now you have a **true conversational AI** that remembers everything! Each interaction builds on previous conversations, creating more intelligent and contextually relevant responses. The AI doesn't just respond - it **remembers** and **learns** from your ongoing dialogue.
+
+### 🎥 Demo Video:
+- **LinkedIn Post**: Successfully posted working chat history demo
+- **Video Location**: `media/Day 10/2025-08-11 11-40-48.mp4`
+
+### 🔗 Session URLs:
+- Access with session: `http://localhost:8000/?session_id=your-session-id`
+- Share session URLs to continue conversations across devices
+- Each URL maintains its own conversation history

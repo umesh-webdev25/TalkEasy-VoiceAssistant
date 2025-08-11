@@ -13,6 +13,92 @@ document.addEventListener('DOMContentLoaded', function () {
         window.history.replaceState({}, '', newUrl);
     }
 
+    // Display current session ID
+    document.getElementById('currentSessionId').textContent = sessionId;
+
+    // Chat history management
+    async function loadChatHistory() {
+        try {
+            const response = await fetch(`/agent/chat/${sessionId}/history`);
+            const data = await response.json();
+            if (data.success && data.messages.length > 0) {
+                displayChatHistory(data.messages);
+            } else {
+                displayEmptyHistory();
+            }
+        } catch (error) {
+            console.error('Error loading chat history:', error);
+            displayEmptyHistory();
+        }
+    }
+
+    function displayChatHistory(messages) {
+        const historyContainer = document.getElementById('chatHistory');
+        if (!historyContainer) return;
+
+        historyContainer.innerHTML = '';
+        
+        messages.forEach(msg => {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${msg.role}`;
+            messageDiv.style.cssText = `
+                margin: 0.5rem 0;
+                padding: 0.75rem;
+                border-radius: 8px;
+                max-width: 80%;
+                ${msg.role === 'user' ? 
+                    'background: #e3f2fd; margin-left: auto; text-align: right;' : 
+                    'background: #f3e5f5; margin-right: auto; text-align: left;'}
+            `;
+            
+            messageDiv.innerHTML = `
+                <div class="message-content" style="font-size: 0.9rem;">${msg.content}</div>
+                <div class="message-time" style="font-size: 0.7rem; color: #666; margin-top: 0.25rem;">
+                    ${new Date(msg.timestamp).toLocaleTimeString()}
+                </div>
+            `;
+            historyContainer.appendChild(messageDiv);
+        });
+        
+        // Scroll to bottom
+        historyContainer.scrollTop = historyContainer.scrollHeight;
+    }
+
+    function displayEmptyHistory() {
+        const historyContainer = document.getElementById('chatHistory');
+        if (historyContainer) {
+            historyContainer.innerHTML = '<p style="text-align: center; color: #666;">No conversation history yet. Start chatting to see your messages here!</p>';
+        }
+    }
+
+    // Load chat history on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadChatHistory();
+    });
+
+    // Chat history controls
+    document.getElementById('refreshHistoryBtn')?.addEventListener('click', loadChatHistory);
+    
+    document.getElementById('clearHistoryBtn')?.addEventListener('click', async () => {
+        if (confirm('Are you sure you want to clear the chat history?')) {
+            try {
+                const response = await fetch(`/agent/chat/${sessionId}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    displayEmptyHistory();
+                    alert('Chat history cleared successfully!');
+                }
+            } catch (error) {
+                console.error('Error clearing chat history:', error);
+                alert('Error clearing chat history');
+            }
+        }
+    });
+
+    // Chat history management - already defined above
+
     // Text-to-Speech functionality
     const ttsForm = document.getElementById('ttsForm');
     const textInput = document.getElementById('textInput');
