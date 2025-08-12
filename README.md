@@ -359,3 +359,25 @@ Now you have a **true conversational AI** that remembers everything! Each intera
 - Access with session: `http://localhost:8000/?session_id=your-session-id`
 - Share session URLs to continue conversations across devices
 - Each URL maintains its own conversation history
+
+# Day 11 of 30 Days of AI Voice Agents
+
+## Error Handling Improvements
+
+- Added robust try-except error handling on the server side for Speech-to-Text (STT), Large Language Model (LLM), and Text-to-Speech (TTS) API calls.
+- Server returns fallback audio responses and clear error messages when APIs fail.
+- Client-side JavaScript enhanced to detect error responses and play a fallback audio message using the SpeechSynthesis API.
+- Fallback audio message: "I'm having trouble connecting right now" is played when API errors occur.
+
+## How to Test Error Handling
+
+1. Temporarily comment out or remove API keys (`MURF_API_KEY`, `GEMINI_API_KEY`, `ASSEMBLYAI_API_KEY`) in your `.env` file or environment variables.
+2. Restart the FastAPI server.
+3. Interact with the voice agent by speaking or submitting text.
+4. When an API error occurs, verify that the bot responds with the fallback audio message.
+5. Check the console logs for error messages and confirm the fallback behavior.
+
+## Notes
+
+- The fallback audio uses the browser's SpeechSynthesis API for immediate audio feedback.
+- This ensures a graceful degradation of service when external APIs are unavailable or misconfigured.
