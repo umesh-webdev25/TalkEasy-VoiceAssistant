@@ -12,6 +12,7 @@ import uvicorn
 import assemblyai as aai
 import google.generativeai as genai
 from chat_history import chat_store
+from error_handler import APIErrorHandler, RetryHandler, ErrorSimulator
 
 load_dotenv()
 
@@ -42,27 +43,55 @@ async def get_backend_message():
 
 @app.post("/tts/generate")
 async def generate_tts(request: TTSRequest):
-    api_key = os.getenv("MURF_API_KEY")
-    if not api_key:
-        raise HTTPException(status_code=500, detail="Murf API key not set.")
-    url = "https://api.murf.ai/v1/speech/generate"
-    payload = {
-        "text": request.text,
-        "voiceId": "en-US-natalie",  
-        "format": "mp3"
-    }
-    headers = {
-        "api-key": api_key,
-        "Content-Type": "application/json"
-    }
-    response = requests.post(url, json=payload, headers=headers)
-    if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail=response.text)
-    data = response.json()
-    audio_url = data.get("audioFile")
-    if not audio_url:
-        raise HTTPException(status_code=500, detail="No audio URL returned.")
-    return {"audio_url": audio_url}
+    try:
+        api_key = os.getenv("MURF_API_KEY")
+        if not api_key:
+            raise Exception("Murf API key not set.")
+        url = "https://api.murf.ai/v1/speech/generate"
+        payload = {
+            "text": request.text,
+            "voiceId": "en-US-natalie",  
+            "format": "mp3"
+        }
+        headers = {
+            "api-key": api_key,
+            "Content-Type": "application/json"
+        }
+        response = requests.post(url, json=payload, headers=headers)
+        if response.status_code != 200:
+            raise Exception(f"Murf TTS failed: {response.text}")
+        data = response.json()
+        audio_url = data.get("audioFile")
+        if not audio_url:
+            raise Exception("No audio URL returned.")
+        return {"audio_url": audio_url}
+    except Exception as e:
+        error_info = APIErrorHandler.handle_api_error(e, "Murf TTS")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": True,
+                "message": error_info["message"],
+                "fallback_text": "I'm having trouble connecting right now",
+                "audio_url": None
+            }
+        )
+
+    except Exception as e:
+        error_info = APIErrorHandler.handle_api_error(e, "Murf TTS")
+        # Return fallback audio response or error message
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": True,
+                "message": error_info["message"],
+                "fallback_text": "I'm having trouble connecting right now",
+                "audio_url": None
+            }
+        )
+
 
 @app.post("/upload-audio")
 async def upload_audio_file(audio: UploadFile = File(...)) -> Dict:
@@ -328,110 +357,59 @@ async def llm_query(request: LLMQueryRequest) -> Dict:
 
 @app.post("/llm/query-audio")
 async def llm_query_audio(audio: UploadFile = File(...)) -> Dict:
-    """
-    Query Google's Gemini API with audio input.
-    Accepts audio file, transcribes it, processes with LLM, and returns audio response.
-    """
     try:
-        # Check if required API keys are configured
         if not GEMINI_API_KEY:
-            raise HTTPException(
-                status_code=500,
-                detail="Gemini API key not configured. Please set GEMINI_API_KEY environment variable."
-            )
-        
-        # Validate file type
+            raise Exception("Gemini API key not configured.")
         allowed_types = [
             'audio/wav', 'audio/mp3', 'audio/webm', 'audio/ogg', 
             'audio/m4a', 'audio/wave', 'audio/mp4', 'audio/flac'
         ]
         if audio.content_type not in allowed_types:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Invalid file type. Allowed types: {', '.join(allowed_types)}"
-            )
-        
-        # Read audio file content
+            raise Exception(f"Invalid file type. Allowed types: {', '.join(allowed_types)}")
         audio_content = await audio.read()
-        
-        # Initialize AssemblyAI transcriber
         transcriber = aai.Transcriber()
-        
-        # Transcribe the audio
         transcript = transcriber.transcribe(audio_content)
-        
         if transcript.status == aai.TranscriptStatus.error:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Transcription failed: {transcript.error}"
-            )
-        
+            raise Exception(f"Transcription failed: {transcript.error}")
         transcription_text = transcript.text
-        
         if not transcription_text or not transcription_text.strip():
-            raise HTTPException(
-                status_code=400,
-                detail="No speech detected in audio"
-            )
-        
-        # Initialize Gemini model
+            raise Exception("No speech detected in audio")
         model = genai.GenerativeModel('gemini-1.5-flash')
-        
-        # Generate response with prompt to keep it concise
         prompt = f"Please provide a concise response to: {transcription_text}. Keep your response under 2800 characters."
-        
         generation_config = genai.types.GenerationConfig(
             max_output_tokens=1000,
             temperature=0.7
         )
-        
         response = model.generate_content(
             prompt,
             generation_config=generation_config
         )
-        
         if not response.text:
-            raise HTTPException(
-                status_code=500,
-                detail="No response generated from Gemini API"
-            )
-        
+            raise Exception("No response generated from Gemini API")
         llm_response = response.text
-        
-        # Handle Murf TTS with 3000 character limit
         api_key = os.getenv("MURF_API_KEY")
         if not api_key:
-            raise HTTPException(status_code=500, detail="Murf API key not set")
-        
-        # Split response if too long (3000 character limit)
-        max_chars = 2800  # Leave some buffer
+            raise Exception("Murf API key not set")
+        max_chars = 2800
         if len(llm_response) > max_chars:
-            # Split into chunks of complete sentences
             sentences = llm_response.replace('!', '.').replace('?', '.').split('.')
             chunks = []
             current_chunk = ""
-            
             for sentence in sentences:
                 sentence = sentence.strip()
                 if not sentence:
                     continue
-                    
                 if len(current_chunk + sentence + '.') <= max_chars:
                     current_chunk += sentence + '.'
                 else:
                     if current_chunk:
                         chunks.append(current_chunk.strip())
                     current_chunk = sentence + '.'
-            
             if current_chunk:
                 chunks.append(current_chunk.strip())
-            
-            # Process first chunk for now (simplified approach)
             text_to_speak = chunks[0] if chunks else llm_response[:max_chars]
         else:
             text_to_speak = llm_response
-        
-        # Generate audio using Murf TTS
         url = "https://api.murf.ai/v1/speech/generate"
         payload = {
             "text": text_to_speak,
@@ -444,24 +422,13 @@ async def llm_query_audio(audio: UploadFile = File(...)) -> Dict:
             "api-key": api_key,
             "Content-Type": "application/json"
         }
-        
         tts_response = requests.post(url, json=payload, headers=headers)
-        
         if tts_response.status_code != 200:
-            raise HTTPException(
-                status_code=tts_response.status_code,
-                detail=f"Murf TTS failed: {tts_response.text}"
-            )
-        
+            raise Exception(f"Murf TTS failed: {tts_response.text}")
         tts_data = tts_response.json()
         audio_url = tts_data.get("audioFile")
-        
         if not audio_url:
-            raise HTTPException(
-                status_code=500,
-                detail="No audio URL returned from Murf"
-            )
-        
+            raise Exception("No audio URL returned from Murf")
         return {
             "success": True,
             "transcription": transcription_text,
@@ -471,24 +438,19 @@ async def llm_query_audio(audio: UploadFile = File(...)) -> Dict:
             "tts_voice": "en-US-natalie",
             "response_length": len(llm_response)
         }
-        
     except Exception as e:
-        # Handle specific errors
-        if "API key" in str(e) or "authentication" in str(e).lower():
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid API key"
-            )
-        elif "quota" in str(e).lower() or "limit" in str(e).lower():
-            raise HTTPException(
-                status_code=429,
-                detail="API quota exceeded"
-            )
-        else:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Processing error: {str(e)}"
-            )
+        error_info = APIErrorHandler.handle_api_error(e, "LLM Audio Query")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": True,
+                "message": error_info["message"],
+                "fallback_text": "I'm having trouble connecting right now",
+                "audio_url": None
+            }
+        )
+
 
 @app.post("/agent/chat/{session_id}")
 async def agent_chat(session_id: str, audio: UploadFile = File(...)) -> Dict:
@@ -500,10 +462,7 @@ async def agent_chat(session_id: str, audio: UploadFile = File(...)) -> Dict:
     try:
         # Check if required API keys are configured
         if not GEMINI_API_KEY:
-            raise HTTPException(
-                status_code=500,
-                detail="Gemini API key not configured. Please set GEMINI_API_KEY environment variable."
-            )
+            raise Exception("Gemini API key not configured.")
         
         # Validate file type
         allowed_types = [
@@ -511,10 +470,7 @@ async def agent_chat(session_id: str, audio: UploadFile = File(...)) -> Dict:
             'audio/m4a', 'audio/wave', 'audio/mp4', 'audio/flac'
         ]
         if audio.content_type not in allowed_types:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Invalid file type. Allowed types: {', '.join(allowed_types)}"
-            )
+            raise Exception(f"Invalid file type. Allowed types: {', '.join(allowed_types)}")
         
         # Read audio file content
         audio_content = await audio.read()
@@ -526,18 +482,12 @@ async def agent_chat(session_id: str, audio: UploadFile = File(...)) -> Dict:
         transcript = transcriber.transcribe(audio_content)
         
         if transcript.status == aai.TranscriptStatus.error:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Transcription failed: {transcript.error}"
-            )
+            raise Exception(f"Transcription failed: {transcript.error}")
         
         transcription_text = transcript.text
         
         if not transcription_text or not transcription_text.strip():
-            raise HTTPException(
-                status_code=400,
-                detail="No speech detected in audio"
-            )
+            raise Exception("No speech detected in audio")
         
         # Store user message in chat history
         chat_store.add_message(session_id, "user", transcription_text)
@@ -576,10 +526,7 @@ Keep your response concise and under 2800 characters."""
         )
         
         if not response.text:
-            raise HTTPException(
-                status_code=500,
-                detail="No response generated from Gemini API"
-            )
+            raise Exception("No response generated from Gemini API")
         
         llm_response = response.text
         
@@ -589,7 +536,7 @@ Keep your response concise and under 2800 characters."""
         # Handle Murf TTS with 3000 character limit
         api_key = os.getenv("MURF_API_KEY")
         if not api_key:
-            raise HTTPException(status_code=500, detail="Murf API key not set")
+            raise Exception("Murf API key not set")
         
         # Split response if too long (3000 character limit)
         max_chars = 2800  # Leave some buffer
@@ -636,19 +583,13 @@ Keep your response concise and under 2800 characters."""
         tts_response = requests.post(url, json=payload, headers=headers)
         
         if tts_response.status_code != 200:
-            raise HTTPException(
-                status_code=tts_response.status_code,
-                detail=f"Murf TTS failed: {tts_response.text}"
-            )
+            raise Exception(f"Murf TTS failed: {tts_response.text}")
         
         tts_data = tts_response.json()
         audio_url = tts_data.get("audioFile")
         
         if not audio_url:
-            raise HTTPException(
-                status_code=500,
-                detail="No audio URL returned from Murf"
-            )
+            raise Exception("No audio URL returned from Murf")
         
         # Get current conversation history
         conversation_history = chat_store.get_session_history(session_id)
@@ -667,22 +608,18 @@ Keep your response concise and under 2800 characters."""
         }
         
     except Exception as e:
-        # Handle specific errors
-        if "API key" in str(e) or "authentication" in str(e).lower():
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid API key"
-            )
-        elif "quota" in str(e).lower() or "limit" in str(e).lower():
-            raise HTTPException(
-                status_code=429,
-                detail="API quota exceeded"
-            )
-        else:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Processing error: {str(e)}"
-            )
+        error_info = APIErrorHandler.handle_api_error(e, "Agent Chat")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": True,
+                "message": error_info["message"],
+                "fallback_text": "I'm having trouble connecting right now",
+                "audio_url": None
+            }
+        )
+
 
 @app.get("/agent/chat/{session_id}/history")
 async def get_chat_history(session_id: str) -> Dict:
