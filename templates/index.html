@@ -1,4 +1,4 @@
-sdd the changes<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -61,7 +61,7 @@ sdd the changes<!DOCTYPE html>
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            transition: background 0.3s;
+            /* transition: background 0.3s; */
         }
 
         .btn:hover {
@@ -136,21 +136,43 @@ sdd the changes<!DOCTYPE html>
                 <button id="startLLMRecordingBtn" class="btn">Start Recording</button>
                 <button id="stopLLMRecordingBtn" class="btn" disabled>Stop Recording</button>
                 <div id="llmRecordingStatus" class="message-area" style="display: none;"></div>
-                
+
                 <div id="llmTranscriptionDisplay" class="transcription-box">
                     <h3>📝 Your Question</h3>
                     <p id="llmTranscriptionText">Your question will appear here...</p>
                 </div>
-                
+
                 <div id="llmResponseDisplay" class="transcription-box">
                     <h3>🤖 AI Response</h3>
                     <p id="llmResponseText">AI response will appear here...</p>
                 </div>
-                
+
                 <div id="llmAudioContainer" style="margin-top: 1rem; display: none;">
                     <audio id="llmAudioPlayer" controls style="width: 100%;">
                         Your browser does not support the audio element.
                     </audio>
+                </div>
+            </div>
+            <!-- Chat History Section -->
+            <div class="card">
+                <h1>💬 Chat History</h1>
+                <p>View your conversation history with the AI assistant:</p>
+                <div id="chatHistoryContainer" style="margin-top: 1rem;">
+                    <div id="chatHistory"
+                        style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; padding: 1rem;">
+                        <p style="text-align: center; color: #666;">No conversation history yet. Start chatting to see
+                            your messages here!</p>
+                    </div>
+                    <div style="margin-top: 1rem;">
+                        <button id="refreshHistoryBtn" class="btn" style="margin-right: 0.5rem;">Refresh
+                            History</button>
+                        <button id="clearHistoryBtn" class="btn" style="background-color: #f44336;">Clear
+                            History</button>
+                    </div>
+                </div>
+                <div id="sessionInfo"
+                    style="margin-top: 1rem; padding: 0.5rem; background: #f0f0f0; border-radius: 4px; font-size: 0.9em;">
+                    <strong>Session ID:</strong> <span id="currentSessionId"></span>
                 </div>
             </div>
 
@@ -181,25 +203,6 @@ sdd the changes<!DOCTYPE html>
             </div>
         </main>
     </div>
-
-            <!-- Chat History Section -->
-            <div class="card">
-                <h1>💬 Chat History</h1>
-                <p>View your conversation history with the AI assistant:</p>
-                <div id="chatHistoryContainer" style="margin-top: 1rem;">
-                    <div id="chatHistory" style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; padding: 1rem;">
-                        <p style="text-align: center; color: #666;">No conversation history yet. Start chatting to see your messages here!</p>
-                    </div>
-                    <div style="margin-top: 1rem;">
-                        <button id="refreshHistoryBtn" class="btn" style="margin-right: 0.5rem;">Refresh History</button>
-                        <button id="clearHistoryBtn" class="btn" style="background-color: #f44336;">Clear History</button>
-                    </div>
-                </div>
-                <div id="sessionInfo" style="margin-top: 1rem; padding: 0.5rem; background: #f0f0f0; border-radius: 4px; font-size: 0.9em;">
-                    <strong>Session ID:</strong> <span id="currentSessionId"></span>
-                </div>
-            </div>
-
     </div>
 
     <script src="/static/app.js"></script>

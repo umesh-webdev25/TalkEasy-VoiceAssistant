@@ -1,9 +1,47 @@
 // FastAPI Voice Agents App with Text-to-Speech, Echo Bot, and Voice-to-LLM functionality
-
 document.addEventListener('DOMContentLoaded', function () {
     console.log('FastAPI Voice Agents App Loaded!');
 
-    // Get session ID from URL
+    // ======================
+    // 1. Backend Connection
+    // ======================
+    const getMessageBtn = document.getElementById('getMessageBtn');
+    const messageDisplay = document.getElementById('messageDisplay');
+
+    if (getMessageBtn && messageDisplay) {
+        getMessageBtn.addEventListener('click', async function () {
+            getMessageBtn.textContent = 'Loading...';
+            getMessageBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/backend');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                messageDisplay.innerHTML = `
+                    <div class="success-message">
+                        ${data.message}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Backend connection error:', error);
+                messageDisplay.innerHTML = `
+                    <div class="error-message">
+                        Could not connect to backend: ${error.message}
+                    </div>
+                `;
+            } finally {
+                getMessageBtn.textContent = 'Fetch Message';
+                getMessageBtn.disabled = false;
+            }
+        });
+    }
+
+    // ======================
+    // 2. Session Management
+    // ======================
     const urlParams = new URLSearchParams(window.location.search);
     let sessionId = urlParams.get('session_id');
     if (!sessionId) {
@@ -16,7 +54,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Display current session ID
     document.getElementById('currentSessionId').textContent = sessionId;
 
-    // Chat history management
+    // ======================
+    // 3. Chat History Management
+    // ======================
     async function loadChatHistory() {
         try {
             const response = await fetch(`/agent/chat/${sessionId}/history`);
@@ -37,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!historyContainer) return;
 
         historyContainer.innerHTML = '';
-        
+
         messages.forEach(msg => {
             const messageDiv = document.createElement('div');
             messageDiv.className = `chat-message ${msg.role}`;
@@ -46,11 +86,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 padding: 0.75rem;
                 border-radius: 8px;
                 max-width: 80%;
-                ${msg.role === 'user' ? 
-                    'background: #e3f2fd; margin-left: auto; text-align: right;' : 
+                ${msg.role === 'user' ?
+                    'background: #e3f2fd; margin-left: auto; text-align: right;' :
                     'background: #f3e5f5; margin-right: auto; text-align: left;'}
             `;
-            
+
             messageDiv.innerHTML = `
                 <div class="message-content" style="font-size: 0.9rem;">${msg.content}</div>
                 <div class="message-time" style="font-size: 0.7rem; color: #666; margin-top: 0.25rem;">
@@ -59,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
             `;
             historyContainer.appendChild(messageDiv);
         });
-        
+
         // Scroll to bottom
         historyContainer.scrollTop = historyContainer.scrollHeight;
     }
@@ -72,13 +112,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Load chat history on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        loadChatHistory();
-    });
+    loadChatHistory();
 
     // Chat history controls
     document.getElementById('refreshHistoryBtn')?.addEventListener('click', loadChatHistory);
-    
+
     document.getElementById('clearHistoryBtn')?.addEventListener('click', async () => {
         if (confirm('Are you sure you want to clear the chat history?')) {
             try {
@@ -97,9 +135,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Chat history management - already defined above
-
-    // Text-to-Speech functionality
+    // ======================
+    // 4. Text-to-Speech (TTS) Functionality
+    // ======================
     const ttsForm = document.getElementById('ttsForm');
     const textInput = document.getElementById('textInput');
     const audioContainer = document.getElementById('audioContainer');
@@ -161,7 +199,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Voice to LLM Assistant functionality
+    // ======================
+    // 5. Voice to LLM Assistant Functionality
+    // ======================
     const startLLMRecordingBtn = document.getElementById('startLLMRecordingBtn');
     const stopLLMRecordingBtn = document.getElementById('stopLLMRecordingBtn');
     const llmRecordingStatus = document.getElementById('llmRecordingStatus');
@@ -209,7 +249,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 llmMediaRecorder.onstop = async () => {
                     llmRecordingStatus.textContent = 'Processing with AI...';
                     const audioBlob = new Blob(llmAudioChunks, { type: 'audio/webm' });
-                    
+
                     try {
                         await processLLMQuery(audioBlob);
                     } catch (error) {
@@ -302,6 +342,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     llmRecordingStatus.textContent = 'AI response ready (click play to listen)';
                 });
             }
+
+            // Refresh chat history after new interaction
+            loadChatHistory();
 
             return data;
 
