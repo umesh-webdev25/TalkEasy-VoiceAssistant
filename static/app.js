@@ -1,46 +1,9 @@
-// FastAPI Voice Agents App with Text-to-Speech, Echo Bot, and Voice-to-LLM functionality
+// Modern AI Voice Assistant - Single Button Recording
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('FastAPI Voice Agents App Loaded!');
+    console.log('AI Voice Assistant Loaded!');
 
     // ======================
-    // 1. Backend Connection
-    // ======================
-    const getMessageBtn = document.getElementById('getMessageBtn');
-    const messageDisplay = document.getElementById('messageDisplay');
-
-    if (getMessageBtn && messageDisplay) {
-        getMessageBtn.addEventListener('click', async function () {
-            getMessageBtn.textContent = 'Loading...';
-            getMessageBtn.disabled = true;
-
-            try {
-                const response = await fetch('/api/backend');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-
-                messageDisplay.innerHTML = `
-                    <div class="success-message">
-                        ${data.message}
-                    </div>
-                `;
-            } catch (error) {
-                console.error('Backend connection error:', error);
-                messageDisplay.innerHTML = `
-                    <div class="error-message">
-                        Could not connect to backend: ${error.message}
-                    </div>
-                `;
-            } finally {
-                getMessageBtn.textContent = 'Fetch Message';
-                getMessageBtn.disabled = false;
-            }
-        });
-    }
-
-    // ======================
-    // 2. Session Management
+    // Session Management
     // ======================
     const urlParams = new URLSearchParams(window.location.search);
     let sessionId = urlParams.get('session_id');
@@ -55,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('currentSessionId').textContent = sessionId;
 
     // ======================
-    // 3. Chat History Management
+    // Chat History Management
     // ======================
     async function loadChatHistory() {
         try {
@@ -107,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function displayEmptyHistory() {
         const historyContainer = document.getElementById('chatHistory');
         if (historyContainer) {
-            historyContainer.innerHTML = '<p style="text-align: center; color: #666;">No conversation history yet. Start chatting to see your messages here!</p>';
+            historyContainer.innerHTML = '<p class="empty-state">No conversation history yet. Start chatting to see your messages here!</p>';
         }
     }
 
@@ -136,258 +99,86 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // ======================
-    // 4. Text-to-Speech (TTS) Functionality
+    // Voice Assistant Functionality
     // ======================
-    const ttsForm = document.getElementById('ttsForm');
-    const textInput = document.getElementById('textInput');
-    const audioContainer = document.getElementById('audioContainer');
-    const audioPlayer = document.getElementById('audioPlayer');
-    const ttsMessage = document.getElementById('ttsMessage');
+    const recordBtn = document.getElementById('recordBtn');
+    const statusIndicator = document.querySelector('.status-indicator');
+    const statusText = document.querySelector('.status-text');
+    const llmTranscriptionDisplay = document.getElementById('llmTranscriptionDisplay');
+    const llmTranscriptionText = document.getElementById('llmTranscriptionText');
+    const llmResponseText = document.getElementById('llmResponseText');
+    const llmAudioPlayer = document.getElementById('llmAudioPlayer');
 
-    if (ttsForm && textInput && audioContainer && audioPlayer && ttsMessage) {
-    ttsForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    let mediaRecorder;
+    let audioChunks = [];
+    let isRecording = false;
 
-        const text = textInput.value.trim();
-        if (!text) {
-            ttsMessage.textContent = 'Please enter some text.';
-            ttsMessage.style.display = 'block';
+    // Recording functionality
+    recordBtn?.addEventListener('click', async () => {
+        if (!navigator.mediaDevices?.getUserMedia) {
+            updateStatus('Your browser does not support audio recording', 'error');
             return;
         }
 
-        ttsMessage.textContent = 'Generating audio...';
-        ttsMessage.style.display = 'block';
-        audioContainer.style.display = 'none';
-        audioPlayer.src = '';
+        if (!isRecording) {
+            // Start recording
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
 
-        try {
-            const response = await fetch('/tts/generate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ text: text })
-            });
+                mediaRecorder.onstart = () => {
+                    isRecording = true;
+                    recordBtn.classList.add('recording');
+                    recordBtn.querySelector('.record-text').textContent = 'Stop';
+                    updateStatus('Recording...', 'recording');
+                };
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.detail || `Request failed with status ${response.status}`);
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = async () => {
+                    isRecording = false;
+                    recordBtn.classList.remove('recording');
+                    recordBtn.querySelector('.record-text').textContent = 'Start Recording';
+                    updateStatus('Processing...', 'processing');
+                    
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    await processLLMQuery(audioBlob);
+                    
+                    // Clean up stream
+                    stream.getTracks().forEach(track => track.stop());
+                };
+
+                mediaRecorder.start(100);
+            } catch (error) {
+                console.error('Microphone access error:', error);
+                updateStatus('Microphone access denied', 'error');
             }
-
-            const data = await response.json();
-            const audioUrl = data.audio_url;
-
-            if (!audioUrl) {
-                throw new Error('No audio URL returned');
-            }
-
-            audioPlayer.src = audioUrl;
-            audioContainer.style.display = 'block';
-            ttsMessage.textContent = 'Audio generated successfully!';
-
-            // Auto-play the audio
-            audioPlayer.play().catch(error => {
-                console.log('Auto-play prevented:', error);
-                ttsMessage.textContent = 'Audio ready (click play to listen)';
-            });
-
-        } catch (error) {
-            console.error('TTS Error:', error);
-            // Show fallback message and optionally play fallback audio
-            ttsMessage.textContent = 'Error generating audio: ' + (error.message || 'Unknown error');
-            ttsMessage.style.color = 'red';
-
-            // Optionally, play fallback audio message using SpeechSynthesis API
-            if ('speechSynthesis' in window) {
-                const fallbackUtterance = new SpeechSynthesisUtterance("I'm having trouble connecting right now");
-                window.speechSynthesis.speak(fallbackUtterance);
+        } else {
+            // Stop recording
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
             }
         }
     });
 
-    async function processLLMQuery(audioBlob) {
-        if (!llmRecordingStatus) return;
-
-        llmRecordingStatus.textContent = 'Processing with AI...';
-        llmRecordingStatus.style.display = 'block';
-        llmRecordingStatus.style.color = 'inherit';
-
-        const formData = new FormData();
-        formData.append('audio', audioBlob, 'recording.webm');
-
-        try {
-            const response = await fetch(`/agent/chat/${sessionId}`, {
-                method: 'POST',
-                body: formData
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                // Play fallback audio message on error
-                if ('speechSynthesis' in window) {
-                    const fallbackUtterance = new SpeechSynthesisUtterance("I'm having trouble connecting right now");
-                    window.speechSynthesis.speak(fallbackUtterance);
-                }
-                throw new Error(errorData.detail || `AI processing failed with status ${response.status}`);
+    function updateStatus(message, type = 'ready') {
+        if (statusIndicator && statusText) {
+            statusText.textContent = message;
+            
+            // Update indicator color based on status
+            statusIndicator.className = 'status-indicator';
+            if (type === 'recording') {
+                statusIndicator.classList.add('recording');
             }
-
-            const data = await response.json();
-
-            if (!data.success) {
-                // Play fallback audio message on error
-                if ('speechSynthesis' in window) {
-                    const fallbackUtterance = new SpeechSynthesisUtterance("I'm having trouble connecting right now");
-                    window.speechSynthesis.speak(fallbackUtterance);
-                }
-                throw new Error(data.detail || 'Unknown error occurred');
-            }
-
-            // Display transcription
-            if (llmTranscriptionText) {
-                llmTranscriptionText.textContent = data.transcription || 'No transcription available';
-            }
-            if (llmTranscriptionDisplay) {
-                llmTranscriptionDisplay.style.display = 'block';
-            }
-
-            // Display response
-            if (llmResponseText) {
-                llmResponseText.textContent = data.llm_response || 'No response from AI';
-            }
-
-            // Set up audio player
-            if (llmAudioPlayer && data.audio_url) {
-                llmAudioPlayer.src = data.audio_url;
-            }
-            if (llmAudioContainer) {
-                llmAudioContainer.style.display = 'block';
-            }
-
-            llmRecordingStatus.textContent = 'AI response ready!';
-
-            // Auto-play the audio and start recording again after audio ends
-            if (llmAudioPlayer && startLLMRecordingBtn) {
-                llmAudioPlayer.play().then(() => {
-                    llmAudioPlayer.onended = () => {
-                        if (startLLMRecordingBtn) startLLMRecordingBtn.click();
-                    };
-                }).catch(error => {
-                    console.log('Auto-play prevented:', error);
-                    llmRecordingStatus.textContent = 'AI response ready (click play to listen)';
-                });
-            }
-
-            // Refresh chat history after new interaction
-            loadChatHistory();
-
-            return data;
-
-        } catch (error) {
-            console.error('LLM processing error:', error);
-            if (llmRecordingStatus) {
-                llmRecordingStatus.textContent = `Processing failed: ${error.message}`;
-                llmRecordingStatus.style.color = 'red';
-            }
-            // Play fallback audio message on error
-            if ('speechSynthesis' in window) {
-                const fallbackUtterance = new SpeechSynthesisUtterance("I'm having trouble connecting right now");
-                window.speechSynthesis.speak(fallbackUtterance);
-            }
-            throw error;
         }
     }
 
-    }
-
-    // ======================
-    // 5. Voice to LLM Assistant Functionality
-    // ======================
-    const startLLMRecordingBtn = document.getElementById('startLLMRecordingBtn');
-    const stopLLMRecordingBtn = document.getElementById('stopLLMRecordingBtn');
-    const llmRecordingStatus = document.getElementById('llmRecordingStatus');
-    const llmTranscriptionDisplay = document.getElementById('llmTranscriptionDisplay');
-    const llmTranscriptionText = document.getElementById('llmTranscriptionText');
-    const llmResponseText = document.getElementById('llmResponseText');
-    const llmAudioContainer = document.getElementById('llmAudioContainer');
-    const llmAudioPlayer = document.getElementById('llmAudioPlayer');
-
-    let llmMediaRecorder;
-    let llmAudioChunks = [];
-
-    if (startLLMRecordingBtn && stopLLMRecordingBtn && llmRecordingStatus) {
-        startLLMRecordingBtn.addEventListener('click', async () => {
-            if (!navigator.mediaDevices?.getUserMedia) {
-                llmRecordingStatus.textContent = 'Your browser does not support audio recording or you may need to allow microphone access.';
-                llmRecordingStatus.style.display = 'block';
-                llmRecordingStatus.style.color = 'red';
-                return;
-            }
-
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                llmMediaRecorder = new MediaRecorder(stream);
-
-                llmMediaRecorder.onstart = () => {
-                    llmAudioChunks = [];
-                    llmRecordingStatus.style.display = 'block';
-                    llmRecordingStatus.textContent = 'Recording...';
-                    llmRecordingStatus.style.color = 'inherit';
-                    startLLMRecordingBtn.disabled = true;
-                    stopLLMRecordingBtn.disabled = false;
-                    if (llmAudioContainer) llmAudioContainer.style.display = 'none';
-                    if (llmAudioPlayer) llmAudioPlayer.src = '';
-                    if (llmTranscriptionDisplay) llmTranscriptionDisplay.style.display = 'none';
-                    if (llmResponseText) llmResponseText.textContent = '';
-                };
-
-                llmMediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        llmAudioChunks.push(event.data);
-                    }
-                };
-
-                llmMediaRecorder.onstop = async () => {
-                    llmRecordingStatus.textContent = 'Processing with AI...';
-                    const audioBlob = new Blob(llmAudioChunks, { type: 'audio/webm' });
-
-                    try {
-                        await processLLMQuery(audioBlob);
-                    } catch (error) {
-                        console.error('LLM processing error:', error);
-                        llmRecordingStatus.textContent = `Error: ${error.message}`;
-                        llmRecordingStatus.style.color = 'red';
-                    } finally {
-                        stream.getTracks().forEach(track => track.stop());
-                        startLLMRecordingBtn.disabled = false;
-                        stopLLMRecordingBtn.disabled = true;
-                    }
-                };
-
-                llmMediaRecorder.start(100);
-            } catch (error) {
-                console.error('Microphone access error:', error);
-                llmRecordingStatus.textContent = `Error: ${error.message}`;
-                llmRecordingStatus.style.display = 'block';
-                llmRecordingStatus.style.color = 'red';
-                startLLMRecordingBtn.disabled = false;
-                stopLLMRecordingBtn.disabled = true;
-            }
-        });
-
-        stopLLMRecordingBtn.addEventListener('click', () => {
-            if (llmMediaRecorder?.state === 'recording') {
-                llmMediaRecorder.stop();
-            }
-        });
-    }
-
     async function processLLMQuery(audioBlob) {
-        if (!llmRecordingStatus) return;
-
-        llmRecordingStatus.textContent = 'Processing with AI...';
-        llmRecordingStatus.style.display = 'block';
-        llmRecordingStatus.style.color = 'inherit';
-
         const formData = new FormData();
         formData.append('audio', audioBlob, 'recording.webm');
 
@@ -421,45 +212,42 @@ document.addEventListener('DOMContentLoaded', function () {
                 llmResponseText.textContent = data.llm_response || 'No response from AI';
             }
 
-            // Set up audio player
+            // Set up and auto-play audio
             if (llmAudioPlayer && data.audio_url) {
                 llmAudioPlayer.src = data.audio_url;
-            }
-            if (llmAudioContainer) {
-                llmAudioContainer.style.display = 'block';
-            }
-
-            llmRecordingStatus.textContent = 'AI response ready!';
-
-            // Auto-play the audio and start recording again after audio ends
-            if (llmAudioPlayer && startLLMRecordingBtn) {
-                llmAudioPlayer.play().then(() => {
-                    llmAudioPlayer.onended = () => {
-                        if (startLLMRecordingBtn) startLLMRecordingBtn.click();
-                    };
-                }).catch(error => {
+                llmAudioPlayer.style.display = 'none'; // Keep hidden but functional
+                
+                // Auto-play with error handling
+                llmAudioPlayer.play().catch(error => {
                     console.log('Auto-play prevented:', error);
-                    llmRecordingStatus.textContent = 'AI response ready (click play to listen)';
+                    updateStatus('Response ready (click to play)', 'ready');
                 });
+
+                llmAudioPlayer.onended = () => {
+                    updateStatus('Ready to record', 'ready');
+                    // Optionally restart recording
+                    setTimeout(() => {
+                        if (recordBtn && !isRecording) {
+                            recordBtn.click();
+                        }
+                    }, 1000);
+                };
             }
 
-            // Refresh chat history after new interaction
+            updateStatus('Response complete', 'ready');
+            
+            // Refresh chat history
             loadChatHistory();
-
-            return data;
 
         } catch (error) {
             console.error('LLM processing error:', error);
-            if (llmRecordingStatus) {
-                llmRecordingStatus.textContent = `Processing failed: ${error.message}`;
-                llmRecordingStatus.style.color = 'red';
-            }
+            updateStatus(`Error: ${error.message}`, 'error');
+            
             // Play fallback audio message on error
             if ('speechSynthesis' in window) {
                 const fallbackUtterance = new SpeechSynthesisUtterance("I'm having trouble connecting right now");
                 window.speechSynthesis.speak(fallbackUtterance);
             }
-            throw error;
         }
     }
 });

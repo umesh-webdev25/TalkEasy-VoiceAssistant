@@ -7,202 +7,87 @@
     <link rel="shortcut icon"
         href="https://st4.depositphotos.com/7662228/26265/v/450/depositphotos_262655382-stock-illustration-chat-bot-icon-background-virtual.jpg"
         type="image/x-icon">
-    <title>30 Days of Voice Agents | Voice Assistant</title>
+    <title>30 Days of Voice Agents | AI Voice Assistant</title>
     <link rel="stylesheet" href="/static/style.css">
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(to right, #e0f7fa, #ffffff);
-            color: #333;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: auto;
-            padding: 2rem;
-        }
-
-        header {
-            text-align: center;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #ccc;
-        }
-
-        h1 {
-            font-size: 2.2rem;
-            margin-bottom: 0.3rem;
-            color: #006064;
-        }
-
-        .subtitle {
-            font-style: italic;
-            color: #555;
-        }
-
-        .card {
-            background: #fff;
-            padding: 1.5rem;
-            margin-top: 2rem;
-            border: 1px solid #ccc;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-        }
-
-        .card h2 {
-            color: #00796b;
-        }
-
-        .btn {
-            background-color: #00897b;
-            color: white;
-            padding: 0.7rem 1.5rem;
-            font-size: 1rem;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            /* transition: background 0.3s; */
-        }
-
-        .btn:hover {
-            background-color: #00695c;
-        }
-
-        .btn:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-
-        .message-area {
-            margin-top: 1rem;
-            padding: 1rem;
-            background-color: #e0f2f1;
-            border-left: 4px solid #00796b;
-            border-radius: 4px;
-            font-weight: bold;
-            color: #004d40;
-        }
-
-        .transcription-box {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 1rem;
-        }
-
-        .transcription-box h3 {
-            color: #00796b;
-            margin-top: 0;
-        }
-
-        .transcription-result {
-            background: #fff;
-            border-left: 4px solid #00796b;
-            padding: 1rem;
-            margin: 0.5rem 0;
-            border-radius: 4px;
-        }
-    </style>
 </head>
 
 <body>
     <div class="container">
         <header>
-            <h1>Voice Agent Challenge</h1>
-            <p class="subtitle">30 Days of Voice Agents</p>
+            <div class="header-content">
+                <h1>AI Voice Assistant</h1>
+                <p class="subtitle">30 Days of Voice Agents</p>
+            </div>
         </header>
 
         <main>
-            <!-- Text-to-Speech Section -->
-            <div class="card">
-                <h1>Text-to-Speech</h1>
-                <p>Enter text below to generate speech using Murf AI:</p>
-                <form id="ttsForm">
-                    <textarea id="textInput" placeholder="Enter text to convert to speech..." rows="4"
-                        style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; border: 1px solid #ccc; border-radius: 4px; font-family: inherit;"
-                        required></textarea>
-                    <button type="submit" class="btn">Generate Audio</button>
-                </form>
-                <audio id="audioPlayer" controls style="width: 100%;">
-                    Your browser does not support the audio element.
-                </audio>
+            <!-- Conversational Agent Section -->
+            <div class="card main-agent">
+                <div class="agent-header">
+                    <h2>Voice Assistant</h2>
+                    <p>Click the microphone to start speaking with your AI assistant</p>
+                </div>
+
+                <div class="recording-section">
+                    <button id="recordBtn" class="record-button">
+                        <div class="mic-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                <line x1="12" y1="19" x2="12" y2="23"></line>
+                                <line x1="8" y1="23" x2="16" y2="23"></line>
+                            </svg>
+                        </div>
+                        <span class="record-text">Start Recording</span>
+                    </button>
+                    
+                    <div class="recording-status">
+                        <div class="status-indicator"></div>
+                        <span class="status-text">Ready to record</span>
+                    </div>
+                </div>
+
+                <div class="conversation-area">
+                    <div id="llmTranscriptionDisplay" class="transcription-box">
+                        <h3>📝 Your Question</h3>
+                        <p id="llmTranscriptionText">Your question will appear here...</p>
+                    </div>
+
+                    <div id="llmResponseDisplay" class="transcription-box">
+                        <h3>🤖 AI Response</h3>
+                        <p id="llmResponseText">AI response will appear here...</p>
+                    </div>
+
+                    <div id="llmAudioContainer" class="audio-container" style="display: none;">
+                        <audio id="llmAudioPlayer" style="display: none;">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                </div>
             </div>
 
-            <!-- Voice to LLM Assistant -->
-            <div class="card">
-                <h1>Voice to LLM Assistant</h1>
-                <p>Record your voice to ask the AI assistant a question:</p>
-                <button id="startLLMRecordingBtn" class="btn">Start Recording</button>
-                <button id="stopLLMRecordingBtn" class="btn" disabled>Stop Recording</button>
-                <div id="llmRecordingStatus" class="message-area" style="display: none;"></div>
-
-                <div id="llmTranscriptionDisplay" class="transcription-box">
-                    <h3>📝 Your Question</h3>
-                    <p id="llmTranscriptionText">Your question will appear here...</p>
-                </div>
-
-                <div id="llmResponseDisplay" class="transcription-box">
-                    <h3>🤖 AI Response</h3>
-                    <p id="llmResponseText">AI response will appear here...</p>
-                </div>
-
-                <div id="llmAudioContainer" style="margin-top: 1rem; display: none;">
-                    <audio id="llmAudioPlayer" controls style="width: 100%;">
-                        Your browser does not support the audio element.
-                    </audio>
-                </div>
-            </div>
             <!-- Chat History Section -->
-            <div class="card">
-                <h1>💬 Chat History</h1>
-                <p>View your conversation history with the AI assistant:</p>
-                <div id="chatHistoryContainer" style="margin-top: 1rem;">
-                    <div id="chatHistory"
-                        style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; padding: 1rem;">
-                        <p style="text-align: center; color: #666;">No conversation history yet. Start chatting to see
-                            your messages here!</p>
+            <div class="card chat-history">
+                <div class="history-header">
+                    <h2>💬 Conversation History</h2>
+                    <p>Your ongoing dialogue with the AI assistant</p>
+                </div>
+                
+                <div id="chatHistoryContainer">
+                    <div id="chatHistory" class="history-container">
+                        <p class="empty-state">No conversation history yet. Start chatting to see your messages here!</p>
                     </div>
-                    <div style="margin-top: 1rem;">
-                        <button id="refreshHistoryBtn" class="btn" style="margin-right: 0.5rem;">Refresh
-                            History</button>
-                        <button id="clearHistoryBtn" class="btn" style="background-color: #f44336;">Clear
-                            History</button>
+                    <div class="history-controls">
+                        <button id="refreshHistoryBtn" class="btn secondary">Refresh</button>
+                        <button id="clearHistoryBtn" class="btn danger">Clear</button>
                     </div>
                 </div>
-                <div id="sessionInfo"
-                    style="margin-top: 1rem; padding: 0.5rem; background: #f0f0f0; border-radius: 4px; font-size: 0.9em;">
+                
+                <div id="sessionInfo" class="session-info">
                     <strong>Session ID:</strong> <span id="currentSessionId"></span>
                 </div>
             </div>
-
-            <!-- Echo Bot -->
-            <div class="card">
-                <h1>Echo Bot</h1>
-                <p>Record your voice and play it back:</p>
-                <button id="startRecordingBtn" class="btn">Start Recording</button>
-                <button id="stopRecordingBtn" class="btn" disabled>Stop Recording</button>
-                <div id="recordingStatus" class="message-area" style="display: none;"></div>
-                <div id="echoAudioContainer" style="margin-top: 1rem; display: none;">
-                    <audio id="echoAudioPlayer" controls style="width: 100%;">
-                        Your browser does not support the audio element.
-                    </audio>
-                </div>
-                <div id="transcriptionDisplay" class="transcription-box">
-                    <h3>📝 Transcription</h3>
-                    <p id="transcriptionText">Your transcription will appear here...</p>
-                </div>
-            </div>
-
-            <!-- Backend Test -->
-            <div class="card">
-                <h1>Test Message from Backend</h1>
-                <p>Click the button to see a response from your FastAPI backend:</p>
-                <button id="getMessageBtn" class="btn">Fetch Message</button>
-                <div id="messageDisplay" class="message-area"></div>
-            </div>
         </main>
-    </div>
     </div>
 
     <script src="/static/app.js"></script>
