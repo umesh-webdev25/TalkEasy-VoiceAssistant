@@ -381,3 +381,33 @@ Now you have a **true conversational AI** that remembers everything! Each intera
 
 - The fallback audio uses the browser's SpeechSynthesis API for immediate audio feedback.
 - This ensures a graceful degradation of service when external APIs are unavailable or misconfigured.
+
+---
+
+## 🚀 Day 12: UI Revamp
+
+Today I revamped the UI to improve user experience and streamline the interface:
+
+### ✅ Completed Tasks:
+- Removed the initial Text-to-Speech section and Echo Bot content.
+- Kept only the conversational agent UI section.
+- Combined the "Start Recording" and "Stop Recording" buttons into a single toggle button that changes status and functionality.
+- Hid the audio player; audio now auto-plays as soon as it is loaded.
+- Added modern glass-morphism styling with smooth animations.
+- Updated the record button to be more prominent with pulse animation during recording.
+- Improved overall layout and responsiveness for better usability.
+
+### 🔧 Technical Implementation:
+- Updated `templates/index.html` to remove unnecessary sections and implement the new UI structure.
+- Enhanced `static/style.css` with new styles for glass-morphism design and animated record button.
+- Refactored `static/app.js` to handle single toggle recording button, status updates, and auto-play of AI response audio.
+
+### 🎥 Demo Video:
+- UI changes can be tested by running the app locally and interacting with the voice assistant.
+
+### 🚀 Usage:
+```bash
+uvicorn main:app --reload
+```
+
+Open your browser and navigate to `http://localhost:8000` to see the updated UI in action.
