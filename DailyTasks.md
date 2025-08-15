@@ -459,3 +459,26 @@ The README.md file is now ready for:
 - **README.md**: Located in the root directory of the project
 - **Access**: Open README.md in any text editor or view on GitHub
 
+---
+
+## 🚀 Day 14: Refactor, Clean Up, and GitHub Upload
+
+Today I refactored the codebase to make it more readable, maintainable, and production-ready, and prepared it for open-source release:
+
+### ✅ Completed Tasks:
+- **Code Refactor**: Moved third-party logic (STT, TTS, LLM) into `/services` modules and imported them in endpoint handlers.
+- **Schemas**: Defined Pydantic models for request and response types in `/schemas` and used them in all endpoints.
+- **Logging**: Added logging throughout the codebase for better traceability and debugging.
+- **Cleanup**: Removed unused imports, variables, duplicate code, and unnecessary files.
+- **Error Handling**: Centralized error handling using `error_handler.py` for consistent API responses.
+- **Documentation**: Ensured `README.md` is up to date and developer-friendly.
+- **Ready for GitHub**: Project is organized, documented, and ready for public release.
+
+### 🚀 Next Steps:
+- Upload the code to GitHub (if not done yet)
+- Make the repository public
+- Share the repo link on LinkedIn to showcase progress
+
+### 💡 Experience:
+The project is now clean, modular, and easy to maintain. All features are documented, and the codebase is ready for collaboration and open-source contribution.
+
