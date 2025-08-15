@@ -2,17 +2,22 @@ from fastapi import FastAPI, HTTPException, Request, UploadFile, File
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
-import requests
 import os
 import uuid
 from typing import Dict, List
 from dotenv import load_dotenv
 import uvicorn
+import logging
 import assemblyai as aai
 import google.generativeai as genai
 from chat_history import chat_store
 from error_handler import APIErrorHandler, RetryHandler, ErrorSimulator
+
+# services and schemas
+from services.stt import transcribe_audio
+from services.tts import generate_tts
+from schemas.tts import TTSRequest
+from schemas.llm import LLMQueryRequest
 
 load_dotenv()
 
@@ -32,6 +37,10 @@ class LLMQueryRequest(BaseModel):
 UPLOAD_DIR = "uploads"
 if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
+
+# logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
@@ -160,19 +169,10 @@ async def transcribe_audio_file(audio: UploadFile = File(...)) -> Dict:
         
         # Read audio file content
         audio_content = await audio.read()
-        
-        # Initialize AssemblyAI transcriber
-        transcriber = aai.Transcriber()
-        
-        # Transcribe the audio
-        transcript = transcriber.transcribe(audio_content)
-        
-        if transcript.status == aai.TranscriptStatus.error:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Transcription failed: {transcript.error}"
-            )
-        
+
+        # Use service to transcribe
+        transcript = transcribe_audio(audio_content)
+
         return {
             "success": True,
             "transcription": transcript.text,
@@ -213,56 +213,14 @@ async def tts_echo(audio: UploadFile = File(...)) -> Dict:
         
         # Read audio file content
         audio_content = await audio.read()
-        
-        # Initialize AssemblyAI transcriber
-        transcriber = aai.Transcriber()
-        
-        # Transcribe the audio
-        transcript = transcriber.transcribe(audio_content)
-        
-        if transcript.status == aai.TranscriptStatus.error:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Transcription failed: {transcript.error}"
-            )
-        
+
+        # Transcribe using service
+        transcript = transcribe_audio(audio_content)
         transcription_text = transcript.text
-        
-        # Generate audio using Murf TTS
-        api_key = os.getenv("MURF_API_KEY")
-        if not api_key:
-            raise HTTPException(status_code=500, detail="Murf API key not set")
-        
-        url = "https://api.murf.ai/v1/speech/generate"
-        payload = {
-            "text": transcription_text,
-            "voiceId": "en-US-natalie",  # You can change this voice
-            "format": "mp3",
-            "speed": 100,
-            "pitch": 0
-        }
-        headers = {
-            "api-key": api_key,
-            "Content-Type": "application/json"
-        }
-        
-        response = requests.post(url, json=payload, headers=headers)
-        
-        if response.status_code != 200:
-            raise HTTPException(
-                status_code=response.status_code,
-                detail=f"Murf TTS failed: {response.text}"
-            )
-        
-        data = response.json()
-        audio_url = data.get("audioFile")
-        
-        if not audio_url:
-            raise HTTPException(
-                status_code=500,
-                detail="No audio URL returned from Murf"
-            )
-        
+
+        # Generate audio using Murf service
+        audio_url = generate_tts(transcription_text)
+
         return {
             "success": True,
             "audio_url": audio_url,
@@ -367,10 +325,7 @@ async def llm_query_audio(audio: UploadFile = File(...)) -> Dict:
         if audio.content_type not in allowed_types:
             raise Exception(f"Invalid file type. Allowed types: {', '.join(allowed_types)}")
         audio_content = await audio.read()
-        transcriber = aai.Transcriber()
-        transcript = transcriber.transcribe(audio_content)
-        if transcript.status == aai.TranscriptStatus.error:
-            raise Exception(f"Transcription failed: {transcript.error}")
+        transcript = transcribe_audio(audio_content)
         transcription_text = transcript.text
         if not transcription_text or not transcription_text.strip():
             raise Exception("No speech detected in audio")
@@ -422,13 +377,8 @@ async def llm_query_audio(audio: UploadFile = File(...)) -> Dict:
             "api-key": api_key,
             "Content-Type": "application/json"
         }
-        tts_response = requests.post(url, json=payload, headers=headers)
-        if tts_response.status_code != 200:
-            raise Exception(f"Murf TTS failed: {tts_response.text}")
-        tts_data = tts_response.json()
-        audio_url = tts_data.get("audioFile")
-        if not audio_url:
-            raise Exception("No audio URL returned from Murf")
+    # Use service to generate TTS
+    audio_url = generate_tts(text_to_speak)
         return {
             "success": True,
             "transcription": transcription_text,
@@ -439,6 +389,7 @@ async def llm_query_audio(audio: UploadFile = File(...)) -> Dict:
             "response_length": len(llm_response)
         }
     except Exception as e:
+        logger.error("LLM query audio error: %s", str(e))
         error_info = APIErrorHandler.handle_api_error(e, "LLM Audio Query")
         return JSONResponse(
             status_code=500,
@@ -472,19 +423,10 @@ async def agent_chat(session_id: str, audio: UploadFile = File(...)) -> Dict:
         if audio.content_type not in allowed_types:
             raise Exception(f"Invalid file type. Allowed types: {', '.join(allowed_types)}")
         
-        # Read audio file content
-        audio_content = await audio.read()
-        
-        # Initialize AssemblyAI transcriber
-        transcriber = aai.Transcriber()
-        
-        # Transcribe the audio
-        transcript = transcriber.transcribe(audio_content)
-        
-        if transcript.status == aai.TranscriptStatus.error:
-            raise Exception(f"Transcription failed: {transcript.error}")
-        
-        transcription_text = transcript.text
+    # Read audio file content and transcribe
+    audio_content = await audio.read()
+    transcript = transcribe_audio(audio_content)
+    transcription_text = transcript.text
         
         if not transcription_text or not transcription_text.strip():
             raise Exception("No speech detected in audio")
@@ -533,7 +475,7 @@ Keep your response concise and under 2800 characters."""
         # Store assistant response in chat history
         chat_store.add_message(session_id, "assistant", llm_response)
         
-        # Handle Murf TTS with 3000 character limit
+        # Generate audio via Murf service
         api_key = os.getenv("MURF_API_KEY")
         if not api_key:
             raise Exception("Murf API key not set")
@@ -580,16 +522,7 @@ Keep your response concise and under 2800 characters."""
             "Content-Type": "application/json"
         }
         
-        tts_response = requests.post(url, json=payload, headers=headers)
-        
-        if tts_response.status_code != 200:
-            raise Exception(f"Murf TTS failed: {tts_response.text}")
-        
-        tts_data = tts_response.json()
-        audio_url = tts_data.get("audioFile")
-        
-        if not audio_url:
-            raise Exception("No audio URL returned from Murf")
+    audio_url = generate_tts(text_to_speak)
         
         # Get current conversation history
         conversation_history = chat_store.get_session_history(session_id)
