@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>30 Days of AI Voice Agents | Day 16: Streaming Audio</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #fff, #e0e0e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .status-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4CAF50;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .status-indicator.recording {
+            background: #f44336;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .record-btn {
+            display: block;
+            margin: 30px auto;
+            padding: 20px 40px;
+            font-size: 1.2em;
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .record-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .record-btn.recording {
+            background: linear-gradient(45deg, #f44336, #e91e63);
+            animation: pulse 1s infinite;
+        }
+
+        .info-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .info-section h3 {
+            margin-top: 0;
+            color: #fff;
+        }
+
+        .info-section ul {
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+
+        .audio-files {
+            margin-top: 20px;
+        }
+
+        .audio-files ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .audio-files li {
+            background: rgba(255, 255, 255, 0.1);
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            color: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Day 16: Streaming Audio</h1>
+        
+        <div class="status-section">
+            <div class="status-indicator" id="statusIndicator"></div>
+            <span class="status-text" id="statusText">Ready to stream audio</span>
+        </div>
+
+        <button class="record-btn" id="recordBtn">Start Streaming</button>
+
+        <div class="info-section">
+            <h3>📋 Instructions</h3>
+            <ul>
+                <li>Click "Start Streaming" to begin recording and streaming audio</li>
+                <li>Speak into your microphone - audio will be streamed to the server in real-time</li>
+                <li>Click "Stop Streaming" to end the recording</li>
+                <li>Audio files will be saved to the <code>streamed_audio</code> directory</li>
+                <li>Check the console for real-time updates</li>
+            </ul>
+        </div>
+
+        <div class="info-section">
+            <h3>🔧 Technical Details</h3>
+            <ul>
+                <li>WebSocket connection: <code>/ws/audio-stream</code></li>
+                <li>Audio format: WebM with Opus codec</li>
+                <li>Streaming interval: 100ms chunks</li>
+                <li>Sample rate: 44.1kHz</li>
+                <li>Channel count: Mono</li>
+            </ul>
+        </div>
+
+        <div class="info-section">
+            <h3>📁 Saved Audio Files</h3>
+            <p>Audio files are saved to: <code>streamed_audio/</code> directory</p>
+            <p>Files are named with timestamp and unique ID for each session</p>
+        </div>
+    </div>
+
+    <script src="/static/streaming-audio.js"></script>
+</body>
+</html>

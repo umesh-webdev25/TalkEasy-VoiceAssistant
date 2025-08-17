@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request, UploadFile, File, WebSocket
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -14,6 +14,10 @@ from pydantic import BaseModel
 import requests
 from chat_history import chat_store
 from error_handler import APIErrorHandler, RetryHandler, ErrorSimulator
+import asyncio
+from datetime import datetime
+import wave
+import io
 
 # Load environment variables
 load_dotenv()
@@ -24,7 +28,87 @@ app = FastAPI(title="30 Days of Voice Agents - FastAPI")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# WebSocket endpoint
+# WebSocket endpoint for audio streaming
+class AudioStreamManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+        self.audio_buffer = {}
+        
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+        client_id = str(uuid.uuid4())
+        self.audio_buffer[client_id] = io.BytesIO()
+        return client_id
+        
+    def disconnect(self, websocket: WebSocket, client_id: str):
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
+        if client_id in self.audio_buffer:
+            self.save_audio_file(client_id)
+            self.audio_buffer.pop(client_id, None)
+            
+    def save_audio_file(self, client_id: str):
+        """Save the received audio data to a file"""
+        try:
+            if client_id not in self.audio_buffer:
+                return
+                
+            buffer = self.audio_buffer[client_id]
+            if buffer.tell() == 0:
+                return
+                
+            # Create audio directory if it doesn't exist
+            audio_dir = "streamed_audio"
+            if not os.path.exists(audio_dir):
+                os.makedirs(audio_dir)
+                
+            # Generate filename with timestamp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"audio_stream_{client_id}_{timestamp}.webm"
+            filepath = os.path.join(audio_dir, filename)
+            
+            # Save the audio data
+            buffer.seek(0)
+            with open(filepath, 'wb') as f:
+                f.write(buffer.getvalue())
+                
+            logger.info(f"Audio stream saved to: {filepath}")
+            print(f"✅ Audio saved: {filepath}")
+            
+        except Exception as e:
+            logger.error(f"Error saving audio file: {e}")
+            
+    async def receive_audio_chunk(self, client_id: str, data: bytes):
+        """Receive and store audio chunk"""
+        if client_id in self.audio_buffer:
+            self.audio_buffer[client_id].write(data)
+
+# Initialize audio stream manager
+audio_stream_manager = AudioStreamManager()
+
+@app.websocket("/ws/audio-stream")
+async def websocket_audio_stream(websocket: WebSocket):
+    """WebSocket endpoint for streaming audio from client to server"""
+    client_id = None
+    try:
+        client_id = await audio_stream_manager.connect(websocket)
+        logger.info(f"Audio stream connection established: {client_id}")
+        
+        while True:
+            # Receive binary audio data
+            data = await websocket.receive_bytes()
+            await audio_stream_manager.receive_audio_chunk(client_id, data)
+            
+    except WebSocketDisconnect:
+        logger.info(f"Audio stream connection closed: {client_id}")
+    except Exception as e:
+        logger.error(f"Audio stream error: {e}")
+    finally:
+        if client_id:
+            audio_stream_manager.disconnect(websocket, client_id)
+
+# Original WebSocket endpoint (for backward compatibility)
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -68,6 +152,10 @@ else:
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/streaming", response_class=HTMLResponse)
+async def streaming_test(request: Request):
+    return templates.TemplateResponse("streaming-test.html", {"request": request})
   
 @app.get("/api/backend")
 async def get_backend_message():
