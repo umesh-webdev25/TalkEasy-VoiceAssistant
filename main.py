@@ -23,6 +23,7 @@ from services.llm_service import LLMService
 from services.tts_service import TTSService
 from services.database_service import DatabaseService
 from services.assemblyai_streaming_service import AssemblyAIStreamingService
+from services.llm_streaming_service import LLMStreamingService
 from utils.logging_config import setup_logging, get_logger
 from utils.constants import get_fallback_message
 
@@ -384,6 +385,51 @@ async def audio_stream_websocket(websocket: WebSocket):
                 # Only show final transcriptions
                 if transcript_data.get("type") == "final_transcript":
                     print(f"📝 {transcript_data.get('text', '')}")
+                    
+                    # Process final transcription through LLM
+                    if transcript_data.get("text", "").strip():
+                        try:
+                            chat_history = await database_service.get_chat_history(session_id)
+                            llm_response = await llm_service.generate_response(
+                                transcript_data["text"], 
+                                chat_history
+                            )
+                            
+                            # Save to database
+                            await database_service.add_message_to_history(
+                                session_id, "user", transcript_data["text"]
+                            )
+                            await database_service.add_message_to_history(
+                                session_id, "assistant", llm_response
+                            )
+                            
+                            # Generate TTS audio
+                            audio_url = await tts_service.generate_speech(llm_response)
+                            
+                            # Send LLM response back to client
+                            response_data = {
+                                "type": "llm_response",
+                                "transcription": transcript_data["text"],
+                                "llm_response": llm_response,
+                                "audio_url": audio_url,
+                                "timestamp": datetime.now().isoformat()
+                            }
+                            await manager.send_personal_message(
+                                json.dumps(response_data), websocket
+                            )
+                            
+                            print(f"🤖 LLM Response: {llm_response}")
+                            
+                        except Exception as llm_error:
+                            logger.error(f"LLM processing error: {llm_error}")
+                            error_response = {
+                                "type": "llm_error",
+                                "message": str(llm_error),
+                                "transcription": transcript_data.get("text", "")
+                            }
+                            await manager.send_personal_message(
+                                json.dumps(error_response), websocket
+                            )
             else:
                 logger.debug("Skipping transcription callback - WebSocket no longer active")
         except Exception as e:

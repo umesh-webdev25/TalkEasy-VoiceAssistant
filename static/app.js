@@ -942,6 +942,14 @@ document.addEventListener("DOMContentLoaded", function () {
           updateStreamingStatus("❌ Transcription error: " + data.message, "error");
         } else if (data.type === "transcription_stopped") {
           updateStreamingStatus("🛑 " + data.message, "warning");
+        } else if (data.type === "llm_response") {
+          // Handle LLM response
+          updateStreamingStatus("🤖 LLM Response received", "success");
+          displayLLMResponse(data.transcription, data.llm_response, data.audio_url);
+        } else if (data.type === "llm_error") {
+          // Handle LLM errors
+          updateStreamingStatus("❌ LLM Error: " + data.message, "error");
+          displayLLMError(data.transcription, data.message);
         }
       };
 
@@ -1319,5 +1327,130 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Scroll into view
     noSpeechArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // Function to display LLM response in streaming mode
+  function displayLLMResponse(transcription, llmResponse, audioUrl) {
+    // Create or update the LLM response display area
+    let llmResponseArea = document.getElementById('llmResponseArea');
+
+    if (!llmResponseArea) {
+      llmResponseArea = document.createElement('div');
+      llmResponseArea.id = 'llmResponseArea';
+      llmResponseArea.className = 'llm-response-area';
+      llmResponseArea.innerHTML = `
+        <h4>🤖 AI Response:</h4>
+        <div class="transcription-section">
+          <h5>🎙️ Your Question:</h5>
+          <div id="streamingTranscription" class="streaming-transcription-text"></div>
+        </div>
+        <div class="response-section">
+          <h5>💡 AI Answer:</h5>
+          <div id="streamingLLMResponse" class="streaming-llm-response"></div>
+        </div>
+        <div class="audio-section">
+          <h5>🔊 Audio Response:</h5>
+          <audio id="streamingAudioPlayer" controls style="width: 100%; margin-top: 10px;"></audio>
+        </div>
+      `;
+
+      // Insert after the complete transcription area or streaming status
+      const completeArea = document.getElementById('completeTranscriptionArea');
+      const statusContainer = document.getElementById('audioStreamStatus');
+      const insertAfter = completeArea || statusContainer;
+
+      if (insertAfter) {
+        insertAfter.parentNode.insertBefore(llmResponseArea, insertAfter.nextSibling);
+      }
+    }
+
+    // Update content
+    const transcriptionDiv = document.getElementById('streamingTranscription');
+    const responseDiv = document.getElementById('streamingLLMResponse');
+    const audioPlayer = document.getElementById('streamingAudioPlayer');
+
+    if (transcriptionDiv) {
+      transcriptionDiv.textContent = transcription;
+    }
+
+    if (responseDiv) {
+      try {
+        if (typeof marked !== "undefined") {
+          marked.setOptions({
+            breaks: true,
+            gfm: true,
+            sanitize: false,
+          });
+          const markdownHtml = marked.parse(llmResponse);
+          responseDiv.innerHTML = markdownHtml;
+        } else {
+          responseDiv.innerHTML = llmResponse.replace(/\n/g, "<br>");
+        }
+      } catch (error) {
+        console.error("Markdown parsing error:", error);
+        responseDiv.innerHTML = llmResponse.replace(/\n/g, "<br>");
+      }
+    }
+
+    if (audioPlayer && audioUrl) {
+      audioPlayer.src = audioUrl;
+      audioPlayer.style.display = 'block';
+      setTimeout(() => {
+        audioPlayer.play().catch(e => {
+          console.log("Auto-play failed:", e);
+        });
+      }, 500);
+    }
+
+    llmResponseArea.style.display = 'block';
+    llmResponseArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // Function to display LLM error in streaming mode
+  function displayLLMError(transcription, errorMessage) {
+    // Create or update the error display area
+    let errorArea = document.getElementById('llmErrorArea');
+
+    if (!errorArea) {
+      errorArea = document.createElement('div');
+      errorArea.id = 'llmErrorArea';
+      errorArea.className = 'llm-error-area';
+      errorArea.innerHTML = `
+        <h4>❌ AI Processing Error</h4>
+        <div class="error-content">
+          <p><strong>Your Question:</strong> <span id="errorTranscription"></span></p>
+          <p><strong>Error:</strong> <span id="errorMessage" class="error-text"></span></p>
+          <p>Please try again or contact support if this persists.</p>
+        </div>
+      `;
+
+      // Insert after the streaming status container
+      const statusContainer = document.getElementById('audioStreamStatus');
+      if (statusContainer) {
+        statusContainer.parentNode.insertBefore(errorArea, statusContainer.nextSibling);
+      }
+    }
+
+    // Update content
+    const transcriptionSpan = document.getElementById('errorTranscription');
+    const messageSpan = document.getElementById('errorMessage');
+
+    if (transcriptionSpan) {
+      transcriptionSpan.textContent = transcription || "No transcription available";
+    }
+
+    if (messageSpan) {
+      messageSpan.textContent = errorMessage;
+    }
+
+    errorArea.style.display = 'block';
+    errorArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    // Hide error after 10 seconds
+    setTimeout(() => {
+      if (errorArea) {
+        errorArea.style.display = 'none';
+      }
+    }, 10000);
   }
 });
