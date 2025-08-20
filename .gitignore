@@ -279,18 +279,6 @@ public
 tmp/
 temp/
 
-# Project specific
-uploads/
-media/
-*.webm
-*.mp4
-*.mp3
-*.wav
-*.png
-*.jpg
-*.jpeg
-*.gif
-
 # Database
 *.db
 *.sqlite
