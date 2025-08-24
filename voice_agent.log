@@ -1,132 +1,14 @@
-2025-08-19 12:07:35 - main - ERROR - Services not properly initialized
-2025-08-19 12:11:39 - main - ERROR - Services not properly initialized
-2025-08-19 12:15:14 - main - ERROR - Services not properly initialized
-2025-08-19 12:16:11 - main - ERROR - Services not properly initialized
-2025-08-19 12:29:42 - main - ERROR - Services not properly initialized
-2025-08-19 12:35:17 - main - ERROR - Services not properly initialized
-2025-08-19 12:38:48 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-19 12:39:00 - main - ERROR - Services not properly initialized
-2025-08-19 12:47:26 - main - ERROR - Services not properly initialized
-2025-08-19 12:53:29 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-19 12:56:08 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-19 12:58:00 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-19 12:58:43 - main - ERROR - Services not properly initialized
-2025-08-19 13:05:40 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-19 13:09:41 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-19 13:10:05 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-19 13:13:25 - main - ERROR - Unexpected error sending message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-19 13:19:19 - main - ERROR - Chat history error: name 'database_service' is not defined
-2025-08-19 13:19:27 - main - ERROR - Failed to save assistant response to history: name 'database_service' is not defined
-2025-08-19 13:20:50 - services.stt_service - ERROR - STT transcription error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'api.assemblyai.com'. (_ssl.c:997)
-2025-08-19 13:20:51 - main - ERROR - STT error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'api.assemblyai.com'. (_ssl.c:997)
-2025-08-19 13:22:59 - main - ERROR - Chat history error: name 'database_service' is not defined
-2025-08-19 13:23:01 - main - ERROR - Failed to save assistant response to history: name 'database_service' is not defined
-2025-08-19 13:23:04 - main - ERROR - Unexpected error sending message: no close frame received or sent
-2025-08-19 13:23:04 - main - ERROR - Error processing audio stream: Cannot call "receive" once a disconnect message has been received.
-2025-08-19 14:31:05 - main - ERROR - Error processing audio stream: Cannot call "receive" once a disconnect message has been received.
-2025-08-19 14:31:05 - main - ERROR - Runtime error sending message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-19 14:41:45 - main - ERROR - Unexpected error sending message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-19 15:15:09 - main - ERROR - Error processing audio stream: Cannot call "receive" once a disconnect message has been received.
-2025-08-19 15:15:09 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-20 11:26:28 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-20 11:53:06 - main - ERROR - Error processing audio stream: Cannot call "receive" once a disconnect message has been received.
-2025-08-20 11:53:06 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-20 22:46:12 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-20 22:49:12 - main - ERROR - Error processing audio stream: Cannot call "receive" once a disconnect message has been received.
-2025-08-20 22:49:12 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-20 23:06:30 - main - ERROR - Services not properly initialized
-2025-08-21 12:09:56 - services.murf_websocket_service - ERROR - Failed to connect to Murf WebSocket: server rejected WebSocket connection: HTTP 404
-2025-08-21 12:13:44 - services.assemblyai_streaming_service - ERROR - Failed to start AssemblyAI Universal Streaming: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'streaming.assemblyai.com'. (_ssl.c:997)
-2025-08-21 12:14:09 - main - ERROR - Error sending personal message: no close frame received or sent
-2025-08-21 12:14:09 - main - ERROR - Error sending personal message: no close frame received or sent
-2025-08-21 12:14:09 - main - ERROR - Error processing audio stream: Cannot call "receive" once a disconnect message has been received.
-2025-08-21 12:38:46 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-21 12:38:46 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-21 12:38:46 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-21 12:38:47 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-21 12:38:47 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-21 13:27:33 - main - ERROR - Error processing audio stream: Cannot call "receive" once a disconnect message has been received.
-2025-08-21 13:27:33 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-21 13:47:34 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-21 13:53:14 - main - ERROR - Error sending transcription: [WinError 233] No process is on the other end of the pipe
-2025-08-21 13:53:14 - main - ERROR - Error sending transcription: [WinError 233] No process is on the other end of the pipe
-2025-08-21 13:53:36 - main - ERROR - Error sending transcription: [WinError 233] No process is on the other end of the pipe
-2025-08-21 13:53:37 - main - ERROR - Error sending transcription: [WinError 233] No process is on the other end of the pipe
-2025-08-21 13:56:26 - main - ERROR - Error processing audio stream: Cannot call "receive" once a disconnect message has been received.
-2025-08-21 13:56:26 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-21 14:02:38 - main - ERROR - Error sending transcription: [WinError 233] No process is on the other end of the pipe
-2025-08-21 14:02:38 - main - ERROR - Error sending transcription: [WinError 233] No process is on the other end of the pipe
-2025-08-21 14:03:01 - main - ERROR - Error sending transcription: [WinError 233] No process is on the other end of the pipe
-2025-08-21 14:03:02 - main - ERROR - Error sending transcription: [WinError 233] No process is on the other end of the pipe
-2025-08-21 15:23:12 - main - ERROR - Error processing audio stream: Cannot call "receive" once a disconnect message has been received.
-2025-08-21 15:23:12 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-21 19:37:34 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-21 19:39:03 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-21 19:39:25 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-21 19:53:33 - main - ERROR - Error processing audio stream: Cannot call "receive" once a disconnect message has been received.
-2025-08-21 19:53:33 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-22 10:54:00 - main - ERROR - Error processing audio stream: Cannot call "receive" once a disconnect message has been received.
-2025-08-22 10:54:00 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-22 22:19:41 - services.assemblyai_streaming_service - ERROR - Failed to start AssemblyAI Universal Streaming: timed out
-2025-08-22 22:19:54 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-22 22:21:31 - main - ERROR - Error processing audio stream: Cannot call "receive" once a disconnect message has been received.
-2025-08-22 22:21:31 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-22 22:23:37 - main - ERROR - Error with Murf WebSocket streaming: WebSocket not connected. Call connect() first.
-2025-08-22 22:23:39 - services.murf_websocket_service - ERROR - Failed to connect to Murf WebSocket: 
-2025-08-22 22:23:39 - main - ERROR - Error with Murf WebSocket streaming: 
-2025-08-22 22:23:40 - main - ERROR - Error in LLM streaming: local variable 'audio_chunk_count' referenced before assignment
-2025-08-22 22:23:49 - main - ERROR - Error with Murf WebSocket streaming: WebSocket not connected. Call connect() first.
-2025-08-22 22:24:15 - main - ERROR - Error sending personal message: no close frame received or sent
-2025-08-22 22:24:15 - main - ERROR - Error processing audio stream: Cannot call "receive" once a disconnect message has been received.
-2025-08-22 22:26:10 - main - ERROR - Error with Murf WebSocket streaming: WebSocket not connected. Call connect() first.
-2025-08-22 22:27:04 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-22 22:27:04 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-22 22:27:04 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-23 12:09:34 - main - ERROR - Error with Murf WebSocket streaming: WebSocket not connected. Call connect() first.
-2025-08-23 12:10:08 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-23 12:10:09 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-23 12:16:13 - main - ERROR - Error sending personal message: no close frame received or sent
-2025-08-23 12:16:21 - main - ERROR - Error processing audio stream: Cannot call "receive" once a disconnect message has been received.
-2025-08-23 12:16:50 - services.murf_websocket_service - ERROR - Error in stream_text_to_audio: sent 1011 (internal error) keepalive ping timeout; no close frame received
-2025-08-23 12:16:50 - main - ERROR - Error with Murf WebSocket streaming: sent 1011 (internal error) keepalive ping timeout; no close frame received
-2025-08-23 12:27:06 - main - ERROR - Error processing audio stream: Cannot call "receive" once a disconnect message has been received.
-2025-08-23 12:27:06 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-23 12:30:28 - main - ERROR - Error processing audio stream: Cannot call "receive" once a disconnect message has been received.
-2025-08-23 12:30:29 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-23 12:32:25 - main - ERROR - Error with Murf WebSocket streaming: WebSocket not connected. Call connect() first.
-2025-08-23 12:33:30 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-23 12:33:31 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-23 12:43:31 - main - ERROR - Error with Murf WebSocket streaming: WebSocket not connected. Call connect() first.
-2025-08-23 12:43:41 - services.murf_websocket_service - ERROR - Failed to connect to Murf WebSocket: 
-2025-08-23 12:43:42 - main - ERROR - Error with Murf WebSocket streaming: 
-2025-08-23 12:43:48 - main - ERROR - Error in LLM streaming: local variable 'audio_chunk_count' referenced before assignment
-2025-08-23 12:44:03 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-23 13:02:37 - main - ERROR - Error with Murf WebSocket streaming: WebSocket not connected. Call connect() first.
-2025-08-23 13:02:43 - services.murf_websocket_service - ERROR - Failed to connect to Murf WebSocket: 
-2025-08-23 13:02:45 - main - ERROR - Error with Murf WebSocket streaming: 
-2025-08-23 13:12:19 - main - ERROR - Error with Murf WebSocket streaming: WebSocket not connected. Call connect() first.
-2025-08-23 13:12:21 - main - ERROR - Error with Murf WebSocket streaming: WebSocket not connected. Call connect() first.
-2025-08-23 13:12:22 - main - ERROR - Error with Murf WebSocket streaming: WebSocket not connected. Call connect() first.
-2025-08-23 13:13:43 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-23 13:13:43 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-23 13:13:44 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-23 13:13:44 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-23 13:13:44 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-23 13:13:45 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-23 13:13:45 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-23 13:26:56 - main - ERROR - Error processing audio stream: Cannot call "receive" once a disconnect message has been received.
-2025-08-23 13:26:57 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-23 13:31:55 - main - ERROR - Error with Murf WebSocket streaming: WebSocket not connected. Call connect() first.
-2025-08-23 13:33:00 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-23 13:33:00 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-23 17:02:19 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-23 17:02:19 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-23 17:04:22 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-23 17:04:22 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-23 17:21:56 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-23 17:21:57 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-23 17:27:52 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-23 17:27:53 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-23 17:31:31 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-23 17:36:50 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-23 17:36:50 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-24 22:26:54 - services.assemblyai_streaming_service - ERROR - Failed to start AssemblyAI Universal Streaming: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'streaming.assemblyai.com'. (_ssl.c:997)
+2025-08-24 22:35:59 - services.assemblyai_streaming_service - ERROR - Failed to start AssemblyAI Universal Streaming: server rejected WebSocket connection: HTTP 404
+2025-08-24 22:36:43 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-24 22:36:43 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-24 22:42:01 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-24 22:51:09 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-24 22:52:54 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-24 22:53:44 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-24 22:56:36 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-24 23:03:10 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-24 23:09:43 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-24 23:09:44 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-24 23:14:00 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-24 23:14:00 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.

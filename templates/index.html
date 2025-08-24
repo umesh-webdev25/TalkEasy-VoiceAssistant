@@ -22,21 +22,36 @@
       </div>
     </header>
 
-
-
-
-    <main class="voice-agent-section">
+    <main class="live-voice-agent-section voice-agent-section">
       <div class="card">
-        <h1>AI Voice Agent</h1>
+        <h1>AI Voice Assistant </h1>
         <p>Ask me anything! Record your question and I'll respond with voice. Chat history is maintained across the
           session.</p>
 
-        <div class="session-info">
-          <small>Session ID: <span id="sessionId">{{ session_id }}</span></small>
-          <div class="chat-history-toggle">
-            <button id="toggleChatHistory" class="btn-toggle">Show Chat History</button>
+
+        <div class="status-indicator">
+          <span id="connectionStatus" class="status-badge disconnected">Disconnected</span>
+          <small id="streamingSessionId" class="streaming-session"></small>
+        </div>
+
+        <div class="controls">
+          <button id="audioStreamBtn" class="btn primary" data-state="ready">
+            <span class="btn-icon">🎤</span>
+            <span class="btn-text">Start Live Conversation</span>
+          </button>
+        </div>
+
+        <div id="audioStreamStatus" class="streaming-status-container" style="display: none;">
+        </div>
+
+        <div id="audioPlaybackStatus" class="audio-playback-container" style="display: none;">
+          <h4>🔊 Live Audio Playback:</h4>
+         
+            <span id="playbackStatusText">Audio is streaming...</span>
           </div>
         </div>
+        <br>
+        <button id="toggleChatHistory" class="btn-toggle">Show Chat History</button>
 
         <div id="chatHistoryContainer" class="chat-history-container" style="display: none;">
           <h4>Previous Messages in this Session:</h4>
@@ -45,99 +60,8 @@
           </div>
         </div>
 
-        <div class="controls">
-          <button id="voiceQueryBtn" class="btn primary" data-state="ready">
-            <span class="btn-icon">🎤</span>
-            <span class="btn-text">Start Recording</span>
-          </button>
-        </div>
-
-        <div id="voiceQueryStatus" class="recording-status" style="display: none;">
-          <div class="recording-indicator">
-            <div class="pulse"></div>
-            <span>Recording your question...</span>
-            <span id="voiceQueryTimer" class="recording-timer">0s</span>
-          </div>
-        </div>
-
-        <div id="voiceQueryMessageDisplay" class="message-display"></div>
-
-        <div id="voiceQueryContainer" class="voice-query-container" style="display: none;">
-          <div class="query-results">
-            <div class="transcription-section">
-              <h4>Your Question:</h4>
-              <div id="voiceQueryTranscription" class="transcription-text"></div>
-            </div>
-
-            <div class="llm-response-section">
-              <h4>AI Response:</h4>
-              <div id="voiceQueryLLMResponse" class="llm-response-text"></div>
-            </div>
-
-            <div class="response-audio-section" style="display: none;">
-              <h4>Listen to Response:</h4>
-              <audio id="voiceQueryAudioPlayer" controls style="display: none;">
-                Your browser does not support the audio element.
-              </audio>
-            </div>
-
-            <div class="voice-query-actions">
-              <button id="askAgainBtn" class="btn primary">Ask Another Question</button>
-            </div>
-          </div>
-        </div>
       </div>
     </main>
-
-    <main class="audio-streaming-section">
-      <div class="card">
-        <h1>🎵 Audio Streaming</h1>
-        <div class="streaming-info">
-          <div class="status-indicator">
-            <span id="connectionStatus" class="status-badge disconnected">Disconnected</span>
-            <small id="streamingSessionId" class="streaming-session"></small>
-          </div>
-        </div>
-
-        <div class="controls">
-          <button id="audioStreamBtn" class="btn secondary" data-state="ready">
-            <span class="btn-icon">🎤</span>
-            <span class="btn-text">Start Audio Streaming</span>
-          </button>
-
-          <button id="listAudioFilesBtn" class="btn tertiary" style="margin-left: 10px;">
-            <span class="btn-icon">📁</span>
-            <span class="btn-text">View Saved Files</span>
-          </button>
-        </div>
-
-        <div id="audioStreamStatus" class="streaming-status-container" style="display: none;">
-          <h4>Streaming Status:</h4>
-          <div id="streamingStatusLog" class="status-log"></div>
-        </div>
-
-        <div id="audioPlaybackStatus" class="audio-playback-container" style="display: none;">
-          <h4>🔊 Live Audio Playback:</h4>
-          <div class="playback-indicator">
-            <div class="audio-wave-animation">
-              <div class="wave-bar"></div>
-              <div class="wave-bar"></div>
-              <div class="wave-bar"></div>
-              <div class="wave-bar"></div>
-              <div class="wave-bar"></div>
-            </div>
-            <span id="playbackStatusText">Audio is streaming...</span>
-          </div>
-        </div>
-
-        <div id="audioFilesContainer" class="audio-files-container" style="display: none;">
-          <h4>Saved Audio Files:</h4>
-          <div id="audioFilesList" class="audio-files-list"></div>
-        </div>
-      </div>
-    </main>
-
-
   </div>
 
   <script>

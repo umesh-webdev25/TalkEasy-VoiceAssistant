@@ -122,7 +122,6 @@ class AssemblyAIStreamingService:
             self.client = StreamingClient(
                 StreamingClientOptions(
                     api_key=self.api_key,
-                    api_host="streaming.assemblyai.com",
                 )
             )
             self.client.on(StreamingEvents.Begin, self.on_begin)
