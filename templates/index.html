@@ -18,52 +18,43 @@
     <header>
       <div class="header-content">
         <h1>AI Voice Assistant</h1>
-        <p class="subtitle">30 Days of Voice Agents</p>
       </div>
     </header>
 
-    <main class="live-voice-agent-section voice-agent-section">
-      <div class="card">
-        <h1>AI Voice Assistant </h1>
-        <p>Ask me anything! Record your question and I'll respond with voice. Chat history is maintained across the
-          session.</p>
-
-
+    <div class="card">
+      <!-- Top bar with status indicator -->
+      <div class="topbar">
         <div class="status-indicator">
           <span id="connectionStatus" class="status-badge disconnected">Disconnected</span>
           <small id="streamingSessionId" class="streaming-session"></small>
         </div>
-
-        <div class="controls">
-          <button id="audioStreamBtn" class="btn primary" data-state="ready">
-            <span class="btn-icon">🎤</span>
-            <span class="btn-text">Start Live Conversation</span>
-          </button>
+        <div class="topbar-buttons">
+          <button id="toggleLogs" class="btn-toggle">Show Streaming Logs</button>
         </div>
-
-        <div id="audioStreamStatus" class="streaming-status-container" style="display: none;">
-          <h4>Streaming Status:</h4>
-          <div id="streamingStatusLog" class="status-log"></div>
-        </div>
-
-        <div id="audioPlaybackStatus" class="audio-playback-container" style="display: none;">
-          <h4>🔊 Live Audio Playback:</h4>
-         
-            <span id="playbackStatusText">Audio is streaming...</span>
-          </div>
-        </div>
-        <br>
-        <button id="toggleChatHistory" class="btn-toggle">Show Chat History</button>
-
-        <div id="chatHistoryContainer" class="chat-history-container" style="display: none;">
-          <h4>Previous Messages in this Session:</h4>
-          <div id="chatHistoryList" class="chat-history-list">
-            <!-- Chat history will be populated here -->
-          </div>
-        </div>
-
       </div>
-    </main>
+
+      <!-- Chat history -->
+      <div id="chatHistoryContainer" class="chat-history-container">
+        <h4>Conversation History:</h4>
+        <div id="chatHistoryList" class="chat-history-list">
+          <!-- Chat history will be populated here -->
+        </div>
+      </div>
+
+      <!-- Streaming logs container (hidden by default) -->
+      <div id="audioStreamStatus" class="streaming-status-container">
+        <h5>Streaming Status:</h5>
+        <div id="streamingStatusLog" class="status-log"></div>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls">
+        <button id="audioStreamBtn" class="btn primary" data-state="ready">
+          <span class="btn-icon">🎤</span>
+          <span class="btn-text">Start Conversation</span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <script>
