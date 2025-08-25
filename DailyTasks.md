@@ -482,3 +482,17 @@ Today I refactored the codebase to make it more readable, maintainable, and prod
 ### 💡 Experience:
 The project is now clean, modular, and easy to maintain. All features are documented, and the codebase is ready for collaboration and open-source contribution.
 
+## Day 15 
+
+## Day 16
+## Day 17 
+## Day 18 
+## Day 19
+## Day 20
+## Day 21
+## Day 22
+## Day 23
+## Day 24
+
+
+
