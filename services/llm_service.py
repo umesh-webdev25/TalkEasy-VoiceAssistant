@@ -6,12 +6,13 @@ logger = logging.getLogger(__name__)
 
 
 class LLMService:    
-    def __init__(self, api_key: str, model_name: str = "gemini-1.5-flash"):
+    def __init__(self, api_key: str, model_name: str = "gemini-1.5-flash", persona: str = None):
         self.api_key = api_key
         self.model_name = model_name
+        self.persona = persona or "helpful AI assistant"
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel(model_name)
-        logger.info(f"🤖 LLM Service initialized with model: {model_name}")
+        logger.info(f"🤖 LLM Service initialized with model: {model_name}, persona: {self.persona}")
     
     def format_chat_history_for_llm(self, messages: List[Dict]) -> str:
         if not messages:
@@ -28,7 +29,7 @@ class LLMService:
         try:
             history_context = self.format_chat_history_for_llm(chat_history)
             
-            llm_prompt = f"""You are a helpful AI assistant. Please respond directly to the user's current question.
+            llm_prompt = f"""You are {self.persona}. Please respond directly to the user's current question.
 
 IMPORTANT: Always answer the CURRENT user question directly. Do not give generic responses about your capabilities unless specifically asked "what can you do".
 
@@ -73,7 +74,7 @@ Please provide a specific, helpful answer to the user's current question. Keep y
         try:
             history_context = self.format_chat_history_for_llm(chat_history)
             
-            llm_prompt = f"""You are a helpful AI assistant. Please respond directly to the user's current question.
+            llm_prompt = f"""You are {self.persona}. Please respond directly to the user's current question.
 
 IMPORTANT: Always answer the CURRENT user question directly. Do not give generic responses about your capabilities unless specifically asked "what can you do".
 

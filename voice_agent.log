@@ -12,3 +12,17 @@
 2025-08-24 23:09:44 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
 2025-08-24 23:14:00 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
 2025-08-24 23:14:00 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-25 11:28:21 - services.assemblyai_streaming_service - ERROR - Failed to start AssemblyAI Universal Streaming: timed out
+2025-08-25 11:29:12 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-25 11:29:12 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-25 11:38:53 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-25 11:43:13 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-25 11:43:13 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-25 11:49:06 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-25 11:49:06 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-25 11:49:22 - main - ERROR - Error sending personal message: received 1001 (going away); then sent 1001 (going away)
+2025-08-25 11:49:22 - main - ERROR - Error sending personal message: received 1001 (going away); then sent 1001 (going away)
+2025-08-25 11:49:23 - main - ERROR - Error sending personal message: received 1001 (going away); then sent 1001 (going away)
+2025-08-25 11:49:24 - main - ERROR - Error sending personal message: received 1001 (going away); then sent 1001 (going away)
+2025-08-25 11:49:25 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-25 11:51:17 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.

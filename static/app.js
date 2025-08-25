@@ -597,7 +597,7 @@ document.addEventListener("DOMContentLoaded", function () {
     
     // Update content with current user message
     llmArea.innerHTML = `
-        <strong>Your question:</strong> "${userMessage}" <br><>
+        <strong>Your question:</strong> "${userMessage}" <br><br>
         <strong>AI Response:</strong>
         <div id="llmResponseText" class="llm-response-text"></div>
     `;

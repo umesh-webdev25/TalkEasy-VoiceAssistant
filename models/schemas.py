@@ -76,6 +76,7 @@ class UserSessionsResponse(BaseModel):
 
 
 class APIKeyConfig(BaseModel):
+    persona: Optional[str] = None
     gemini_api_key: Optional[str] = None
     assemblyai_api_key: Optional[str] = None
     murf_api_key: Optional[str] = None

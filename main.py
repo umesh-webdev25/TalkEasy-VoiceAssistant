@@ -51,6 +51,7 @@ murf_websocket_service: MurfWebSocketService = None
 def initialize_services() -> APIKeyConfig:
     """Initialize all services with API keys"""
     config = APIKeyConfig(
+        persona=os.getenv("AGENT_PERSONA"),
         gemini_api_key=os.getenv("GEMINI_API_KEY"),
         assemblyai_api_key=os.getenv("ASSEMBLYAI_API_KEY"),
         murf_api_key=os.getenv("MURF_API_KEY"),
@@ -61,11 +62,11 @@ def initialize_services() -> APIKeyConfig:
     global stt_service, llm_service, tts_service, database_service, assemblyai_streaming_service, murf_websocket_service
     if config.are_keys_valid:
         stt_service = STTService(config.assemblyai_api_key)
-        llm_service = LLMService(config.gemini_api_key)
+        llm_service = LLMService(config.gemini_api_key, persona=config.persona)
         tts_service = TTSService(config.murf_api_key, config.murf_voice_id)
         assemblyai_streaming_service = AssemblyAIStreamingService(config.assemblyai_api_key)
         murf_websocket_service = MurfWebSocketService(config.murf_api_key, config.murf_voice_id)
-        logger.info("✅ All AI services initialized successfully")
+        logger.info(f"✅ All AI services initialized successfully. Persona: {config.persona or 'Default helpful assistant'}")
     else:
         missing_keys = config.validate_keys()
         logger.error(f"❌ Missing API keys: {missing_keys}")
