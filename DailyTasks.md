@@ -482,17 +482,173 @@ Today I refactored the codebase to make it more readable, maintainable, and prod
 ### 💡 Experience:
 The project is now clean, modular, and easy to maintain. All features are documented, and the codebase is ready for collaboration and open-source contribution.
 
-## Day 15 
+### Day 15 
 
-## Day 16
-## Day 17 
-## Day 18 
-## Day 19
-## Day 20
-## Day 21
-## Day 22
-## Day 23
-## Day 24
+⚡ Day 15 of 30 – Murf AI Voice Agent Challenge ⚡
+✅ Halfway milestone reached! 🎉
+
+Today’s task was all about WebSockets 🔌. I set up a /ws endpoint on the server to establish a persistent connection between client and server.
+
+Once connected, I tested it with Postman — sending messages to the server and receiving echoed responses back in real-time. 🔄⚡
+
+This is a big step toward making our conversational agent faster, more interactive, and real-time ready. 🚀
+
+Excited for the second half of this challenge! 💪
+
+### Day 16
+
+🎤 Day 16 of 30 – Murf AI Voice Agent Challenge 🎤
+Today was all about Streaming Audio with WebSockets 🔊⚡
+
+✨ On the client:
+I updated the recording logic to send audio chunks over a websocket connection at regular intervals (instead of accumulating them).
+
+✨ On the server:
+Built a /ws handler to receive the binary audio data and save it into a file.
+No transcription, LLM, or TTS today — just focusing on getting the raw audio streaming + saving flow working. 📝
+
+This lays the foundation for real-time voice conversations, and I’m super excited about what comes next 🚀
+
+### Day 17
+
+🗣️ Day 17 of 30 – Murf AI Voice Agent Challenge 🗣️
+
+Today was all about WebSockets + AssemblyAI 🎧
+
+✨ Yesterday I streamed audio data from the client to the server using WebSockets.
+✨ Today, I integrated AssemblyAI’s Python SDK to transcribe that streaming audio in real-time.
+
+The transcription is being printed directly on the server console 🖥️ (and can also be shown in the UI).
+
+A key step here was ensuring the audio data was in the correct format — 16kHz, 16-bit, mono PCM — as expected by AssemblyAI’s streaming API. ⚡
+
+Super excited to see the bot now listening and transcribing speech live — a big milestone toward building a fully conversational AI agent 🚀
+
+### Day 18 
+
+🎙️ 30 Days of AI Voice Agents | Day 18: Turn Detection 🎙️
+
+Today I explored turn detection with AssemblyAI’s Streaming API 🗣️➡️💻
+
+✨ Turn detection allows the system to identify when the user stops speaking.
+✨ Once detected, the server sends a WebSocket message back to the client indicating the end of the turn.
+✨ At this point, the final transcription is displayed in the UI 🖥️, giving a clean conversational experience.
+
+This is a powerful feature — it helps build natural, real-time dialogues where the AI knows when it’s your turn vs. when it should respond. 🔄
+
+One more step closer to a fully conversational AI agent 🚀
+
+### Day 19
+
+⚡ Day 19 of 30 - Murf AI Voice Agent Challenge | Streaming LLM Responses 🚀🧵
+
+Today’s milestone was all about making the LLM respond in real time once the transcription is done. Instead of waiting for the full reply at once, I made the response stream directly into the server console.
+
+Here’s what I accomplished:
+
+✅ Once the final transcript is received from AssemblyAI, it’s sent to the LLM API
+✅ The LLM now streams its response chunk by chunk into the server console
+✅ Accumulated the pieces to build the full response as they arrived
+✅ No UI changes needed — streaming happens entirely on the backend
+
+💡 The result? After transcription completes, the LLM immediately starts responding in the server console — giving a feel of real-time conversation flow.
+
+### Day 20
+
+🔌 Day 20 of 30 - Murf AI Voice Agent Challenge | WebSockets + Streaming Audio 🎧⚡
+
+Today’s milestone was about connecting the LLM’s streaming response directly to Murf via WebSockets — making the pipeline even more seamless! 🤖🎙️
+
+Here’s what I accomplished:
+
+✅ Set up a WebSocket connection between the server and Murf
+✅ Sent the LLM’s streaming text response directly to Murf in real time
+✅ Received the audio output in base64 format from Murf
+✅ Printed the base64 encoded audio to the console for verification
+✅ No UI changes required — everything happens under the hood
+
+💡 The result? Now, as soon as the LLM starts streaming text, Murf begins streaming back speech in base64, ready to be decoded and played — pushing us closer to a true real-time voice AI loop.
+### Day 21
+
+🎉 Day 21 of 30 - Murf AI Voice Agent Challenge | Streaming Audio Data to Client 🔊⚡
+
+✅ 3 Weeks Done, 9 Days To Go! 🚀
+
+Today’s milestone was all about sending audio data directly to the client over WebSockets — making the pipeline fully interactive and end-to-end.
+
+Here’s what I accomplished:
+
+✅ Streamed base64 audio chunks from the server to the client over WebSockets
+✅ Accumulated the incoming base64 chunks into an array on the client side
+✅ Printed acknowledgements in the console whenever the client received new audio data
+✅ Skipped audio playback in the <audio> element for now — focusing purely on streaming flow verification
+
+💡 The result? My client can now receive audio in real time, chunk by chunk, confirming each packet — a huge step toward live, low-latency voice conversations.
+
+### Day 22
+
+🎶 Day 22 of 30 - Murf AI Voice Agent Challenge | Playing Streaming Audio 🎧⚡
+
+Yesterday, I successfully streamed audio data to the client. Today’s milestone was making that audio actually play in the UI — live, as it arrives! 🤖🔊
+
+Here’s what I accomplished:
+
+✅ Handled incoming base64 audio chunks on the client in real time
+✅ Converted chunks into audio buffers for playback
+✅ Ensured the playback was as seamless as possible — smooth streaming without waiting for the entire response
+✅ Built the foundation for true low-latency conversational voice AI
+
+💡 The result? Instead of waiting for the AI to finish speaking, my assistant now plays audio as it streams in — it feels much closer to a real conversation.
+### Day 23
+🤖 Day 23 of 30 - Murf AI Voice Agent Challenge | Complete Voice Agent 🎯🎧
+
+Today marks a major milestone — I’ve officially connected all the pieces together into a fully working conversational voice agent! 🚀
+
+Here’s what I accomplished:
+
+✅ Captured the user’s query through voice input
+✅ Transcribed the audio using AssemblyAI
+✅ Sent the transcript (with chat history) to the LLM API
+✅ Generated a contextual response and saved it to the chat history
+✅ Forwarded the response to Murf for speech synthesis
+✅ Streamed the audio back to the client in real time over WebSockets
+
+💡 The result? My AI assistant can now handle a full conversation loop — listening, understanding, responding, and speaking back — all while remembering context. It feels like talking to a real assistant!
+
+### Day 24
+
+🏴‍☠️ Day 24 of 30 - Murf AI Voice Agent Challenge | Agent Persona 🎭🤖
+
+Today’s milestone was about giving my AI Voice Agent a personality — so it doesn’t just talk, it talks with style! ⚡
+
+I decided to make my agent a Pirate 🏴‍☠️⚓
+
+Here’s what I accomplished:
+
+✅ Added a persona layer to the LLM prompts so responses match a specific role
+✅ Tuned the agent to speak like a pirate — full of “Ahoy!” and “Matey!” 🗡️
+✅ Ensured Murf voices captured the tone and style of the persona
+✅ Made conversations more engaging and fun instead of plain AI replies
+
+💡 The result? My AI assistant now feels alive — it doesn’t just answer, it roleplays! Talking to it is like chatting with a pirate crewmate. 🏴‍☠️
+
+### Day 25
+
+🛠️ Day 25 of 30 - Murf AI Voice Agent Challenge | Agent Special Skill ⚡🤖
+
+Today’s milestone was about making my AI Voice Agent more useful by giving it a special skill — so it’s not just conversational, but also actionable! 🚀
+
+Here’s what I accomplished:
+
+✅ Added a new skill module to the agent
+✅ Enabled the agent to perform tasks beyond chat (e.g., fetch latest info)
+✅ Integrated the skill into the existing conversation flow so it feels natural
+✅ Ensured the skill works seamlessly with transcription, LLM response, and Murf speech
+
+💡 The result? My assistant can now do more than just talk — it has a real skill that makes it practical in everyday scenarios.
+
+
+
 
 
 

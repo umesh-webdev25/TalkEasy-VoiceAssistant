@@ -33,3 +33,5 @@
 2025-08-25 20:29:46 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
 2025-08-25 20:35:34 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
 2025-08-25 20:42:55 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-26 14:10:26 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-26 14:10:26 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.

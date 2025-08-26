@@ -1,6 +1,7 @@
 import google.generativeai as genai
-from typing import List, Dict, Optional, AsyncGenerator
+from typing import List, Dict, Optional, AsyncGenerator, Union
 import logging
+from services.web_search_service import web_search_service
 
 logger = logging.getLogger(__name__)
 
@@ -25,8 +26,94 @@ class LLMService:
         
         return formatted_history
     
+    def _should_perform_web_search(self, user_message: str) -> bool:
+        """Determine if a web search should be performed based on the user message"""
+        search_triggers = [
+            'search for', 'find information about', 'look up', 
+            'what is', 'who is', 'when is', 'where is', 'how to',
+            'latest news about', 'current weather in', 'recent developments in',
+            'tell me about', 'information on', 'details about'
+        ]
+        
+        user_message_lower = user_message.lower()
+        
+        # Check for explicit search commands
+        if any(trigger in user_message_lower for trigger in ['search for', 'find information about', 'look up']):
+            return True
+        
+        # Check for information-seeking questions that would benefit from current data
+        if any(user_message_lower.startswith(trigger) for trigger in ['what is', 'who is', 'when is', 'where is']):
+            return True
+        
+        # Check for topics that require current information
+        current_info_topics = ['news', 'weather', 'stock', 'price', 'recent', 'latest', 'current', 'today', 'now']
+        if any(topic in user_message_lower for topic in current_info_topics):
+            return True
+        
+        return False
+    
+    def _extract_search_query(self, user_message: str) -> str:
+        """Extract the search query from the user message"""
+        user_message_lower = user_message.lower()
+        
+        # Remove common search phrases to get the actual query
+        search_phrases = [
+            'search for', 'find information about', 'look up', 
+            'what is', 'who is', 'when is', 'where is', 'how to',
+            'tell me about', 'information on', 'details about'
+        ]
+        
+        for phrase in search_phrases:
+            if phrase in user_message_lower:
+                return user_message_lower.split(phrase, 1)[1].strip()
+        
+        # If no specific phrase found, use the entire message as query
+        return user_message.strip()
+    
     async def generate_response(self, user_message: str, chat_history: List[Dict]) -> str:
         try:
+            # Check if web search is needed
+            if self._should_perform_web_search(user_message):
+                query = self._extract_search_query(user_message)
+                logger.info(f"🔍 Performing web search for query: {query}")
+                
+                try:
+                    search_results = await web_search_service.search_web(query)
+                    formatted_results = web_search_service.format_search_results(search_results, query)
+                    
+                    # Combine search results with LLM processing for better response
+                    history_context = self.format_chat_history_for_llm(chat_history)
+                    
+                    enhanced_prompt = f"""You are {self.persona}. Based on the following search results, provide a comprehensive answer to the user's question.
+
+SEARCH RESULTS FOR "{query}":
+{formatted_results}
+
+USER'S ORIGINAL QUESTION: "{user_message}"
+
+{history_context}
+
+Please provide a helpful, accurate answer based on the search results. Summarize the key information and cite relevant sources if appropriate."""
+                    
+                    llm_response = self.model.generate_content(enhanced_prompt)
+                    
+                    if llm_response.candidates:
+                        response_text = ""
+                        for part in llm_response.candidates[0].content.parts:
+                            if hasattr(part, 'text'):
+                                response_text += part.text
+                        
+                        if response_text.strip():
+                            return response_text.strip()
+                    
+                    # Fallback to just returning formatted search results if LLM fails
+                    return formatted_results
+                    
+                except Exception as search_error:
+                    logger.error(f"Web search failed: {search_error}")
+                    # Continue with normal LLM response if search fails
+            
+            # Normal LLM response for non-search queries
             history_context = self.format_chat_history_for_llm(chat_history)
             
             llm_prompt = f"""You are {self.persona}. Please respond directly to the user's current question.
