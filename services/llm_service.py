@@ -2,6 +2,7 @@ import google.generativeai as genai
 from typing import List, Dict, Optional, AsyncGenerator, Union
 import logging
 from services.web_search_service import web_search_service
+from services.skills_manager import skills_manager
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ class LLMService:
             return ""
         
         formatted_history = "\n\nPrevious conversation context:\n"
-        for msg in messages[-10:]:
+        for msg in messages :
             role = "User" if msg["role"] == "user" else "Assistant"
             formatted_history += f"{role}: {msg['content']}\n"
         
@@ -30,8 +31,8 @@ class LLMService:
         """Determine if a web search should be performed based on the user message"""
         search_triggers = [
             'search for', 'find information about', 'look up', 
-            'what is', 'who is', 'when is', 'where is', 'how to',
-            'latest news about', 'current weather in', 'recent developments in',
+            'what is', 'who is', 'when is', 'where is',
+            'latest news about', 'recent developments in',
             'tell me about', 'information on', 'details about'
         ]
         
@@ -69,6 +70,47 @@ class LLMService:
         
         # If no specific phrase found, use the entire message as query
         return user_message.strip()
+
+    def _extract_news_category(self, user_message: str) -> str:
+        """Extract the news category from the user message"""
+        user_message_lower = user_message.lower()
+        
+        # Define common news categories and their keywords
+        categories = {
+            'business': ['business', 'finance', 'economy', 'market', 'stock'],
+            'technology': ['technology', 'tech', 'ai', 'artificial intelligence', 'computer'],
+            'sports': ['sports', 'football', 'basketball', 'soccer', 'baseball'],
+            'entertainment': ['entertainment', 'movie', 'music', 'celebrity', 'hollywood'],
+            'health': ['health', 'medical', 'medicine', 'covid', 'pandemic'],
+            'science': ['science', 'research', 'discovery', 'space', 'nasa']
+        }
+        
+        # Check for specific category keywords
+        for category, keywords in categories.items():
+            if any(keyword in user_message_lower for keyword in keywords):
+                return category
+        
+        # Default to general news
+        return "general"
+
+    def _format_news_response(self, news_data: dict, category: str) -> str:
+        """Format the news response for the user"""
+        articles = news_data.get("articles", [])
+        if not articles:
+            return "No news articles found for this category."
+        
+        # Get top 3 articles
+        top_articles = articles[:3]
+        
+        response = f"Here are the latest {category} news headlines:\n\n"
+        
+        for i, article in enumerate(top_articles, 1):
+            title = article.get("title", "No title available")
+            source = article.get("source", {}).get("name", "Unknown source")
+            response += f"{i}. {title} - {source}\n"
+        
+        response += "\nWould you like me to read any of these articles in detail?"
+        return response
     
     async def generate_response(self, user_message: str, chat_history: List[Dict]) -> str:
         try:
@@ -93,7 +135,8 @@ USER'S ORIGINAL QUESTION: "{user_message}"
 
 {history_context}
 
-Please provide a helpful, accurate answer based on the search results. Summarize the key information and cite relevant sources if appropriate."""
+Please provide a helpful, accurate answer based on the search results.
+Summarize the key information and cite relevant sources if appropriate."""
                     
                     llm_response = self.model.generate_content(enhanced_prompt)
                     
@@ -113,6 +156,19 @@ Please provide a helpful, accurate answer based on the search results. Summarize
                     logger.error(f"Web search failed: {search_error}")
                     # Continue with normal LLM response if search fails
             
+
+            # Check if news information is requested
+            if any(keyword in user_message.lower() for keyword in ['news', 'headlines', 'latest news', 'current events', 'breaking news']):
+                category = self._extract_news_category(user_message)
+                logger.info(f"📰 Fetching news for category: {category}")
+                news_service = skills_manager.get_skill("news")
+                if news_service:
+                    news_data = news_service.get_news_headlines(category)
+                    if "error" not in news_data and "articles" in news_data and news_data["articles"]:
+                        return self._format_news_response(news_data, category)
+                    else:
+                        return "I couldn't fetch the latest news at the moment. Please try again later."
+
             # Normal LLM response for non-search queries
             history_context = self.format_chat_history_for_llm(chat_history)
             
@@ -122,7 +178,7 @@ IMPORTANT: Always answer the CURRENT user question directly. Do not give generic
 
 User's current question: "{user_message}"
 
-{history_context}
+
 
 Please provide a specific, helpful answer to the user's current question. Keep your response under 3000 characters."""
             
@@ -159,6 +215,22 @@ Please provide a specific, helpful answer to the user's current question. Keep y
     async def generate_streaming_response(self, user_message: str, chat_history: List[Dict]) -> AsyncGenerator[str, None]:
         """Generate a streaming response from the LLM"""
         try:
+            # Check if news information is requested
+            if any(keyword in user_message.lower() for keyword in ['news', 'headlines', 'latest news', 'current events', 'breaking news']):
+                category = self._extract_news_category(user_message)
+                logger.info(f"📰 Fetching news for category: {category}")
+                news_service = skills_manager.get_skill("news")
+                if news_service:
+                    news_data = news_service.get_news_headlines(category)
+                    if "error" not in news_data and "articles" in news_data and news_data["articles"]:
+                        news_response = self._format_news_response(news_data, category)
+                        # Yield the news response as a single chunk
+                        yield news_response
+                        return
+                    else:
+                        yield "I couldn't fetch the latest news at the moment. Please try again later."
+                        return
+
             history_context = self.format_chat_history_for_llm(chat_history)
             
             llm_prompt = f"""You are {self.persona}. Please respond directly to the user's current question.

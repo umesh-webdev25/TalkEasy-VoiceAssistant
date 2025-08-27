@@ -647,6 +647,21 @@ Here’s what I accomplished:
 
 💡 The result? My assistant can now do more than just talk — it has a real skill that makes it practical in everyday scenarios.
 
+📰 Day 26 of 30 - Murf AI Voice Agent Challenge | Agent Special Skill 2 ⚡🤖
+
+Yesterday, I gave my AI Voice Agent its first special skill.
+Today, I added another — the ability to fetch the latest news in real time! 🗞️✨
+
+Here’s what I accomplished:
+
+✅ Integrated a news API into the agent’s skill set
+✅ Allowed the agent to fetch fresh, real-world updates on demand
+✅ Blended the news results into the LLM’s conversational flow
+✅ Converted the response into Murf-powered speech so the assistant can read out the news naturally
+
+💡 The result? My AI assistant can now act like a personal newsreader, keeping conversations informative and up-to-date.
+
+📹 Posted a demo below where the agent fetches and narrates the latest headlines — sounding less like a bot and more like a helpful companion. 🚀
 
 
 

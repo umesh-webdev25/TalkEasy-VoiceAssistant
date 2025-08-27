@@ -1,5 +1,7 @@
 import logging
+import os
 from services.web_search_service import web_search_service
+from services.news_service import NewsService
 
 logger = logging.getLogger(__name__)
 
@@ -8,9 +10,10 @@ class SkillsManager:
     
     def __init__(self):
         self.skills = {
+            "news": NewsService(os.getenv("NEWS_API_KEY")),  # Registering the news service
             "web_search": web_search_service
         }
-        logger.info("🛠 Skills Manager initialized with available skills.")
+        logger.info("🛠 Skills Manager initialized with available skills: news, web_search")
     
     def get_skill(self, skill_name: str):
         """Retrieve a skill by name"""
