@@ -50,3 +50,10 @@
 2025-08-27 20:41:31 - main - ERROR - Error sending personal message: no close frame received or sent
 2025-08-27 20:41:31 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
 2025-08-27 20:47:01 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-28 08:02:34 - services.assemblyai_streaming_service - ERROR - Failed to start AssemblyAI Universal Streaming: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'streaming.assemblyai.com'. (_ssl.c:997)
+2025-08-28 08:02:58 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-28 08:02:58 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-28 08:04:17 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-28 08:11:28 - services.assemblyai_streaming_service - ERROR - Failed to start AssemblyAI Universal Streaming: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'streaming.assemblyai.com'. (_ssl.c:997)
+2025-08-28 08:11:56 - main - ERROR - Error sending personal message: no close frame received or sent
+2025-08-28 08:11:56 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.

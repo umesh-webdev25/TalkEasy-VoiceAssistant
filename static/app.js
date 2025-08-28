@@ -34,6 +34,99 @@ document.addEventListener("DOMContentLoaded", function () {
     toggleChatHistoryBtn.addEventListener("click", toggleLogs);
   }
 
+  // Conversation history elements
+  const toggleConversationBtn = document.getElementById("toggleCnversation");
+  const conversationHistoryPopup = document.getElementById("conversationHistoryPopup");
+  const closeConversationPopup = document.getElementById("closeConversationPopup");
+  const refreshConversationsBtn = document.getElementById("refreshConversations");
+  const conversationList = document.getElementById("conversationList");
+  const conversationMessages = document.getElementById("conversationMessages");
+  const selectedConversationInfo = document.getElementById("selectedConversationInfo");
+
+  // Function to toggle conversation history popup
+  function toggleConversationHistory() {
+    if (conversationHistoryPopup.style.display === "none" || conversationHistoryPopup.style.display === "") {
+      loadConversationHistory();
+      conversationHistoryPopup.style.display = "block";
+    } else {
+      conversationHistoryPopup.style.display = "none";
+    }
+  }
+
+  // Function to close conversation history popup
+  function closeConversationHistory() {
+    conversationHistoryPopup.style.display = "none";
+  }
+
+  // Function to load conversation history
+  async function loadConversationHistory() {
+    try {
+      const response = await fetch(`/agent/chat/history?session_id=${sessionId}`);
+      const data = await response.json();
+      if (data.success && data.messages.length > 0) {
+        displayConversationList(data.messages);
+      } else {
+        conversationList.innerHTML = '<p class="no-history">No conversations found.</p>';
+      }
+    } catch (error) {
+      console.error("Failed to load conversation history:", error);
+    }
+  }
+
+  // Function to display conversation list
+  function displayConversationList(conversations) {
+    conversationList.innerHTML = ""; // Clear existing list
+    conversations.forEach(conversation => {
+      const listItem = document.createElement("div");
+      listItem.className = "conversation-list-item";
+      listItem.textContent = `Session ID: ${conversation.session_id} - Messages: ${conversation.message_count}`;
+      listItem.onclick = () => loadConversationMessages(conversation.session_id);
+      conversationList.appendChild(listItem);
+    });
+  }
+
+  // Function to load messages for a selected conversation
+  async function loadConversationMessages(sessionId) {
+    try {
+      const response = await fetch(`/agent/chat/history?session_id=${sessionId}`);
+      const data = await response.json();
+      if (data.success) {
+        displayConversationMessages(data.messages);
+        selectedConversationInfo.textContent = `Showing messages for session: ${sessionId}`;
+      }
+    } catch (error) {
+      console.error("Failed to load conversation messages:", error);
+    }
+  }
+
+  // Function to display messages for a selected conversation
+  function displayConversationMessages(messages) {
+    conversationMessages.innerHTML = ""; // Clear existing messages
+    messages.forEach(message => {
+      const messageDiv = document.createElement("div");
+      messageDiv.className = "chat-message";
+      messageDiv.innerHTML = `
+        <div class="message-header">
+          <span class="message-role">${message.role === 'user' ? '👤 You' : '🤖 AI Assistant'}</span>
+          <small class="message-time">${new Date(message.timestamp).toLocaleString()}</small>
+        </div>
+        <div class="message-content">${message.content}</div>
+      `;
+      conversationMessages.appendChild(messageDiv);
+    });
+  }
+  if (toggleConversationBtn) {
+    toggleConversationBtn.addEventListener("click", toggleConversationHistory);
+  }
+
+  if (closeConversationPopup) {
+    closeConversationPopup.addEventListener("click", closeConversationHistory);
+  }
+
+  if (refreshConversationsBtn) {
+    refreshConversationsBtn.addEventListener("click", loadConversationHistory);
+  }
+
   // Initialize streaming mode
   initializeStreamingMode();
 
@@ -81,7 +174,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   async function loadChatHistory() {
     try {
-      const response = await fetch(`/agent/chat/${sessionId}/history`);
+      const response = await fetch(`/agent/chat/history?session_id=${sessionId}`);
       const data = await response.json();
       if (data.success && data.messages.length > 0) {
         displayChatHistory(data.messages);
@@ -307,7 +400,11 @@ document.addEventListener("DOMContentLoaded", function () {
       timestamp: Date.now()
     };
 
-    displayChatHistory([message], true);
+    // Check if the message already exists to avoid duplicates
+    const existingMessage = document.querySelector(`[data-message-id="${message.id}"]`);
+    if (!existingMessage) {
+        displayChatHistory([message], true);
+    }
   }
 
   // Update user message in chat history (for partial transcripts)
@@ -480,7 +577,7 @@ document.addEventListener("DOMContentLoaded", function () {
       isStreaming = true;
       if (audioStreamBtn) {
         audioStreamBtn.innerHTML =
-          '<span class="btn-icon">⏹️</span><span class="btn-text">Stop Live Conversation</span>';
+          '<span class="btn-icon">⏹️</span><span class="btn-text">Stop Conversation</span>';
         audioStreamBtn.className = "btn danger";
         audioStreamBtn.setAttribute("data-state", "recording");
       }
@@ -537,7 +634,7 @@ document.addEventListener("DOMContentLoaded", function () {
       // Update UI
       if (audioStreamBtn) {
         audioStreamBtn.innerHTML =
-          '<span class="btn-icon">🎤</span><span class="btn-text">Start Live Conversation</span>';
+          '<span class="btn-icon">🎤</span><span class="btn-text">Start Conversation</span>';
         audioStreamBtn.className = "btn primary";
         audioStreamBtn.setAttribute("data-state", "ready");
       }

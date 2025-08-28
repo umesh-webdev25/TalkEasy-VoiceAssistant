@@ -183,6 +183,7 @@
       transition: all 0.2s ease;
       max-width: 400px;
       color: gray;
+      margin-bottom:10px;
     }
     
     .chat-message.user {
@@ -341,6 +342,79 @@
       background-color: #fee2d1;
       color: #8a4a00;
       animation: pulse 1.5s infinite;
+    }
+    
+    /* Conversation History Popup */
+    .conversation-history-popup {
+      position: fixed;
+      top: 50%;
+      right: 20px;
+      transform: translateY(-50%);
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 300px;
+      max-height: 80vh;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none; /* Hidden by default */
+      padding: 10px;
+    }
+
+    .conversation-popup-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .btn-close-popup {
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .conversation-list-container {
+      margin-bottom: 10px;
+    }
+
+    .conversation-list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .conversation-list {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 5px;
+    }
+
+    .conversation-list-item {
+      padding: 5px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .conversation-list-item:hover {
+      background: #f1f1f1;
+    }
+
+    .conversation-messages-container {
+      border-top: 1px solid #dee2e6;
+      padding-top: 10px;
+    }
+
+    .conversation-messages {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 5px;
     }
     
     /* Controls */

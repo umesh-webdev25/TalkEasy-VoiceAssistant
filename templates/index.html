@@ -30,22 +30,49 @@
         </div>
         <div class="topbar-buttons">
           <button id="toggleLogs" class="btn-toggle">Show Streaming Logs</button>
+          <button id="toggleCnversation" class="btn-toggle">Show Conversation History</button>
         </div>
       </div>
 
       <!-- Chat history -->
       <div id="chatHistoryContainer" class="chat-history-container">
-        <h4>Conversation History:</h4>
+        <h4>Chat History:</h4>
         <div id="chatHistoryList" class="chat-history-list">
           <!-- Chat history will be populated here -->
         </div>
       </div>
 
-      <!-- Streaming logs container (hidden by default) -->
-      <div id="audioStreamStatus" class="streaming-status-container">
-        <h5>Streaming Status:</h5>
-        <div id="streamingStatusLog" class="status-log"></div>
+  <!-- Streaming logs container (hidden by default) -->
+  <div id="audioStreamStatus" class="streaming-status-container">
+    <h5>Streaming Status:</h5>
+    <div id="streamingStatusLog" class="status-log"></div>
+  </div>
+
+  <!-- Conversation History Popup (hidden by default) -->
+  <div id="conversationHistoryPopup" class="conversation-history-popup">
+    <div class="conversation-popup-header">
+      <h5>Conversation History</h5>
+      <button id="closeConversationPopup" class="btn-close-popup">×</button>
+    </div>
+    <div class="conversation-list-container">
+      <div class="conversation-list-header">
+        <h6>Recent Conversations</h6>
+        <button id="refreshConversations" class="btn-refresh">🔄</button>
       </div>
+      <div id="conversationList" class="conversation-list">
+        <!-- Conversation items will be populated here -->
+      </div>
+    </div>
+    <div class="conversation-messages-container">
+      <div class="messages-header">
+        <h6>Messages</h6>
+        <small id="selectedConversationInfo"></small>
+      </div>
+      <div id="conversationMessages" class="conversation-messages">
+        <!-- Messages for selected conversation will be populated here -->
+      </div>
+    </div>
+  </div>
 
       <!-- Controls -->
       <div class="controls">
