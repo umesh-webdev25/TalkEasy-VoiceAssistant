@@ -82,3 +82,17 @@
 2025-08-28 22:31:53 - main - ERROR - Error clearing session history for session_1569akbg0_1756399710310: 'DatabaseService' object has no attribute 'clear_session_history'
 2025-08-28 22:39:43 - main - ERROR - Error clearing session history for session_1569akbg0_1756399710310: 'DatabaseService' object has no attribute 'clear_session_history'
 2025-08-28 22:39:54 - main - ERROR - Error clearing session history for session_1569akbg0_1756399710310: 'DatabaseService' object has no attribute 'clear_session_history'
+2025-08-28 23:00:36 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-28 23:00:36 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-28 23:00:39 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-28 23:00:39 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-28 23:18:46 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-28 23:18:47 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-28 23:20:34 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-28 23:58:06 - main - ERROR - Error sending personal message: no close frame received or sent
+2025-08-28 23:58:07 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-28 23:58:16 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-29 00:02:32 - services.assemblyai_streaming_service - ERROR - AssemblyAI streaming error: Unauthorized Connection: Invalid API key
+2025-08-29 00:02:57 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-29 00:02:58 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-29 00:02:58 - services.assemblyai_streaming_service - ERROR - AssemblyAI streaming error: Unauthorized Connection: Invalid API key

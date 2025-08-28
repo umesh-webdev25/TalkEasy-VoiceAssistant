@@ -663,7 +663,16 @@ Here’s what I accomplished:
 
 📹 Posted a demo below where the agent fetches and narrates the latest headlines — sounding less like a bot and more like a helpful companion. 🚀
 
+✨ Day 27 of 30 - Murf AI Voice Agent Challenge | Revamp UI & Code Cleanup 🎨⚡
 
+Today’s milestone was all about polishing things up — improving the UI, codebase, and user experience to get closer to a final product.
 
+Here’s what I accomplished:
 
+✅ Added a config section in the UI where users can enter their own API keys (instead of relying on .env files)
+✅ Built the config as a sidebar panel for easy access and flexibility
+✅ Did a UI revamp to make the app cleaner and more user-friendly
+✅ Performed code cleanup — better structure, reusable components, and simplified flows
+✅ Prepped the foundation for adding final touches & features before the finish line
 
+💡 The result? The voice agent now feels less like a dev prototype and more like a real product — customizable, clean, and user-ready.
