@@ -11,9 +11,52 @@
   <!-- Highlight.js for code syntax highlighting -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <!-- link for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 </head>
 
 <body>
+  <div class="sidebar">
+    <div class="sidebar-buttons">
+      <button class="btn-toggle" onclick="window.location.href='http://127.0.0.1:8000/'">
+        <i class="fas fa-plus"></i> 
+        <span>
+
+          New Chat
+        </span>
+      </button>
+
+      <button id="toggleLogs" class="btn-toggle">
+        <i class="fas fa-terminal"></i>
+        <span>
+
+          Show Logs
+        </span>
+      </button>
+
+      <button id="toggleCnversation" class="btn-toggle">
+        <i class="fas fa-history"></i>
+        <span>
+          Show History
+
+        </span>
+      </button>
+
+      <button id="toggleClear" class="btn-toggle">
+        <i class="fas fa-trash"></i>
+        <span>
+          Clear History
+
+        </span>
+      </button>
+
+      <button id="toggleConfig" class="btn-toggle">
+        <i class="fas fa-cog"></i> <span> Config</span>
+      </button>
+
+    </div>
+  </div>
   <div class="container">
     <header>
       <div class="header-content">
@@ -29,50 +72,122 @@
           <small id="streamingSessionId" class="streaming-session"></small>
         </div>
         <div class="topbar-buttons">
-          <button id="toggleLogs" class="btn-toggle">Show Streaming Logs</button>
-          <button id="toggleCnversation" class="btn-toggle">Show Conversation History</button>
+          <button class="btn-toggle" onclick="window.location.href='http://127.0.0.1:8000/'">
+            <i class="fas fa-plus"></i> New Chat
+          </button>
+
+          <button id="toggleLogs" class="btn-toggle">
+            <i class="fas fa-terminal"></i> Show Logs
+          </button>
+
+          <button id="toggleCnversation" class="btn-toggle">
+            <i class="fas fa-history"></i> Show History
+          </button>
+
+          <button id="toggleClear" class="btn-toggle">
+            <i class="fas fa-trash"></i> Clear History
+          </button>
+
+          <button id="toggleConfig" class="btn-toggle">
+            <i class="fas fa-cog"></i> Config
+          </button>
+
+          <select name="persona" id="personaslector" class="btn-toggle">
+            <option value="default">Normal Person</option>
+            <option value="pirate">Pirate</option>
+            <option value="developer">Developer</option>
+          </select>
         </div>
       </div>
 
       <!-- Chat history -->
       <div id="chatHistoryContainer" class="chat-history-container">
-        <h4>Chat History:</h4>
         <div id="chatHistoryList" class="chat-history-list">
           <!-- Chat history will be populated here -->
         </div>
       </div>
 
-  <!-- Streaming logs container (hidden by default) -->
-  <div id="audioStreamStatus" class="streaming-status-container">
-    <h5>Streaming Status:</h5>
-    <div id="streamingStatusLog" class="status-log"></div>
-  </div>
+      <!-- Streaming logs container (hidden by default) -->
+      <div id="audioStreamStatus" class="streaming-status-container">
+        <h5>Streaming Status:</h5>
+        <div id="streamingStatusLog" class="status-log"></div>
+      </div>
 
-  <!-- Conversation History Popup (hidden by default) -->
-  <div id="conversationHistoryPopup" class="conversation-history-popup">
-    <div class="conversation-popup-header">
-      <h5>Conversation History</h5>
-      <button id="closeConversationPopup" class="btn-close-popup">×</button>
-    </div>
-    <div class="conversation-list-container">
-      <div class="conversation-list-header">
-        <h6>Recent Conversations</h6>
-        <button id="refreshConversations" class="btn-refresh">🔄</button>
+      <!-- Conversation History Popup (hidden by default) -->
+      <div id="conversationHistoryPopup" class="conversation-history-popup">
+        <div class="conversation-popup-header">
+          <h5>Conversation History</h5>
+          <div class="conversation-popup-buttons">
+            <button id="refreshConversations" class="btn-refresh"
+              style="border: none; background-color: transparent;">🔄</button>
+            <button id="closeConversationPopup" class="btn-close-popup">×</button>
+          </div>
+        </div>
+        <div class="conversation-list-container">
+          <div id="conversationList" class="conversation-list">
+            <!-- Conversation items will be populated here -->
+          </div>
+        </div>
       </div>
-      <div id="conversationList" class="conversation-list">
-        <!-- Conversation items will be populated here -->
+
+      <!-- API Configuration Modal (hidden by default) -->
+      <div id="configModal" class="config-modal">
+        <div class="config-modal-content">
+          <div class="config-modal-header">
+            <h3>API Configuration</h3>
+            <button id="closeConfigModal" class="btn-close-popup">×</button>
+          </div>
+          <div class="config-modal-body">
+            <form id="apiConfigForm">
+              <div class="form-group">
+                <label for="geminiApiKey">Gemini API Key:</label>
+                <input type="password" id="geminiApiKey" name="gemini_api_key" placeholder="Enter your Gemini API key"
+                  class="form-input">
+              </div>
+
+              <div class="form-group">
+                <label for="assemblyaiApiKey">AssemblyAI API Key:</label>
+                <input type="password" id="assemblyaiApiKey" name="assemblyai_api_key"
+                  placeholder="Enter your AssemblyAI API key" class="form-input">
+              </div>
+
+              <div class="form-group">
+                <label for="murfApiKey">Murf AI API Key:</label>
+                <input type="password" id="murfApiKey" name="murf_api_key" placeholder="Enter your Murf AI API key"
+                  class="form-input">
+              </div>
+
+              <div class="form-group">
+                <label for="murfVoiceId">Murf Voice ID:</label>
+                <input type="text" id="murfVoiceId" name="murf_voice_id" placeholder="en-IN-aarav" value="en-IN-aarav"
+                  class="form-input">
+                <small class="form-help">Default: en-IN-aarav</small>
+              </div>
+
+              <div class="form-group">
+                <label for="agentPersona">AI Persona:</label>
+                <textarea id="agentPersona" name="agent_persona" placeholder="Enter AI assistant persona/prompt"
+                  class="form-textarea" rows="3"></textarea>
+                <small class="form-help">Optional: Customize how the AI assistant behaves</small>
+              </div>
+
+              <div class="form-group">
+                <label for="mongodbUrl">MongoDB URL:</label>
+                <input type="text" id="mongodbUrl" name="mongodb_url" placeholder="mongodb://localhost:27017"
+                  value="mongodb://localhost:27017" class="form-input">
+                <small class="form-help">Default: mongodb://localhost:27017</small>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn primary">Save Configuration</button>
+                <button type="button" id="cancelConfig" class="btn danger">Cancel</button>
+                <button type="button" id="clearConfig" class="btn">Clear Configuration</button>
+              </div>
+            </form>
+            <div id="configStatus" class="config-status"></div>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="conversation-messages-container">
-      <div class="messages-header">
-        <h6>Messages</h6>
-        <small id="selectedConversationInfo"></small>
-      </div>
-      <div id="conversationMessages" class="conversation-messages">
-        <!-- Messages for selected conversation will be populated here -->
-      </div>
-    </div>
-  </div>
 
       <!-- Controls -->
       <div class="controls">

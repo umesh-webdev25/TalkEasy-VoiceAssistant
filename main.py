@@ -50,16 +50,17 @@ assemblyai_streaming_service: AssemblyAIStreamingService = None
 murf_websocket_service: MurfWebSocketService = None
 
 
-def initialize_services() -> APIKeyConfig:
-    """Initialize all services with API keys"""
-    config = APIKeyConfig(
-        persona=os.getenv("AGENT_PERSONA"),
-        gemini_api_key=os.getenv("GEMINI_API_KEY"),
-        assemblyai_api_key=os.getenv("ASSEMBLYAI_API_KEY"),
-        murf_api_key=os.getenv("MURF_API_KEY"),
-        murf_voice_id=os.getenv("MURF_VOICE_ID", "en-IN-aarav"),
-        mongodb_url=os.getenv("MONGODB_URL", "mongodb://localhost:27017")
-    )
+def initialize_services(config: APIKeyConfig = None) -> APIKeyConfig:
+    """Initialize all services with API keys from the provided config or environment variables"""
+    if config is None:
+        config = APIKeyConfig(
+            persona=os.getenv("AGENT_PERSONA"),
+            gemini_api_key=os.getenv("GEMINI_API_KEY"),
+            assemblyai_api_key=os.getenv("ASSEMBLYAI_API_KEY"),
+            murf_api_key=os.getenv("MURF_API_KEY"),
+            murf_voice_id=os.getenv("MURF_VOICE_ID", "en-IN-aarav"),
+            mongodb_url=os.getenv("MONGODB_URL", "mongodb://localhost:27017")
+        )
     
     global stt_service, llm_service, tts_service, database_service, assemblyai_streaming_service, murf_websocket_service
     if config.are_keys_valid:
@@ -146,6 +147,19 @@ async def get_backend_status():
         logger.error(f"Error getting backend status: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
+@app.get("/agent/chat/all")
+async def get_all_chat_histories():
+    """Get all chat histories across all sessions"""
+    try:
+        histories = await database_service.get_all_chat_histories()
+        return {
+            "success": True,
+            "total_sessions": len(histories),
+            "chat_histories": histories
+        }
+    except Exception as e:
+        logger.error(f"Error getting all chat histories: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/agent/chat/{session_id}/history", response_model=ChatHistoryResponse)
@@ -168,10 +182,6 @@ async def get_chat_history_endpoint(session_id: str = Path(..., description="Ses
             message_count=0
         )
 
-
-
-
-
 @app.delete("/agent/chat/{session_id}/history")
 async def clear_session_history(session_id: str = Path(..., description="Session ID")):
     """Clear chat history for a specific session"""
@@ -185,6 +195,30 @@ async def clear_session_history(session_id: str = Path(..., description="Session
     except Exception as e:
         logger.error(f"Error clearing session history for {session_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@app.post("/api/config")
+async def update_configuration(config: APIKeyConfig):
+    """Update API key configuration"""
+    try:
+        # Reinitialize services with the new configuration
+        initialize_services(config)
+        
+        return {
+            "success": True,
+            "message": "Configuration updated successfully",
+            "services_initialized": {
+                "stt": stt_service is not None,
+                "llm": llm_service is not None,
+                "tts": tts_service is not None,
+                "database": database_service is not None,
+                "assemblyai_streaming": assemblyai_streaming_service is not None,
+                "murf_websocket": murf_websocket_service is not None
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error updating configuration: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to update configuration: {str(e)}")
 
 
 @app.post("/agent/chat/{session_id}", response_model=VoiceChatResponse)
@@ -511,6 +545,7 @@ async def audio_stream_websocket(websocket: WebSocket):
                 await manager.send_personal_message(json.dumps(transcript_data), websocket)
                 # Only show final transcriptions and trigger LLM streaming
                 if transcript_data.get("type") == "final_transcript":
+                    await manager.send_personal_message(json.dumps(transcript_data), websocket)
                     final_text = transcript_data.get('text', '').strip()
                     
                     # Normalize text for comparison

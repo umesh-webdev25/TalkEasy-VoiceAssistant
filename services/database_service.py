@@ -43,6 +43,27 @@ class DatabaseService:
                 return False
         return False
     
+    async def get_all_chat_histories(self) -> List[Dict]:
+        """Get all chat histories across sessions"""
+        if self.db is not None:
+            try:
+                cursor = self.db.chat_sessions.find({}, {"_id": 0})
+                histories = await cursor.to_list(length=None)
+                return histories
+            except Exception as e:
+                logger.error(f"Failed to get all chat histories: {str(e)}")
+                # fallback to in-memory
+                return [
+                    {"session_id": sid, "messages": msgs}
+                    for sid, msgs in self.in_memory_store.items()
+                ]
+        else:
+            # fallback if DB not connected
+            return [
+                {"session_id": sid, "messages": msgs}
+                for sid, msgs in self.in_memory_store.items()
+            ]
+
     async def get_chat_history(self, session_id: str) -> List[Dict]:
         """Get chat history for a session"""
         if self.db is not None:

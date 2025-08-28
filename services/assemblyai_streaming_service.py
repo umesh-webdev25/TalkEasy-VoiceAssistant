@@ -135,7 +135,7 @@ class AssemblyAIStreamingService:
                     encoding='pcm_s16le',  # 16-bit signed little-endian PCM
                     format_turns=True,     # Enable text formatting
                     end_of_turn_confidence_threshold=0.5,  # Lower threshold for faster detection
-                    min_end_of_turn_silence_when_confident=300,  # 300ms for better detection
+                    min_end_of_turn_silence_when_confident=1200,  # 300ms for better detection
                 )
             )
             
