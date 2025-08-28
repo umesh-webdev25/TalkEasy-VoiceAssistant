@@ -76,7 +76,8 @@ class UserSessionsResponse(BaseModel):
 
 
 class APIKeyConfig(BaseModel):
-    persona: Optional[str] = None
+    personas: List[str] = Field(default_factory=lambda: ["default", "pirate", "developer"], description="List of available personas")
+    selected_persona: Optional[str] = None
     gemini_api_key: Optional[str] = None
     assemblyai_api_key: Optional[str] = None
     murf_api_key: Optional[str] = None

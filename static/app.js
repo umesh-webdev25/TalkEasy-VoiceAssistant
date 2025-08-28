@@ -819,9 +819,6 @@
           return;
         }
 
-        // Show audio playback indicator
-        showAudioPlaybackIndicator();
-
         // Convert base64 to PCM data
         const float32Array = base64ToPCMFloat32(base64Audio);
         if (!float32Array || float32Array.length === 0) {
@@ -851,8 +848,6 @@
       if (audioContext) {
         playheadTime = audioContext.currentTime;
       }
-
-      hideAudioPlaybackIndicator();
     }
 
       // ==================== CONFIGURATION MODAL FUNCTIONALITY ====================
@@ -1081,26 +1076,26 @@
     
     async function handlePersonaChange(event) {
       const selectedValue = event.target.value;
-      const personaDescription = mapValueToPersona(selectedValue);
       
       try {
-        // Update localStorage
-        const savedConfig = localStorage.getItem('voiceAgentConfig');
-        let config = {};
-        if (savedConfig) {
-          try {
-            config = JSON.parse(savedConfig);
-          } catch (error) {
-            console.error("Error parsing saved config:", error);
-          }
+        // Send persona change request to server
+        const response = await fetch('/api/persona/switch', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ "persona": selectedValue })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to switch persona');
         }
-        
-        config.agent_persona = personaDescription;
-        localStorage.setItem('voiceAgentConfig', JSON.stringify(config));
-        
-        // Send updated configuration to server
-        await sendConfigToServer(config);
-        
+
+        const result = await response.json();
+        if (!result.success) {
+          throw new Error(result.message || 'Server persona switch failed');
+        }
+
         console.log(`Persona changed to: ${selectedValue}`);
       } catch (error) {
         console.error("Error changing persona:", error);

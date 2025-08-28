@@ -54,7 +54,8 @@ def initialize_services(config: APIKeyConfig = None) -> APIKeyConfig:
     """Initialize all services with API keys from the provided config or environment variables"""
     if config is None:
         config = APIKeyConfig(
-            persona=os.getenv("AGENT_PERSONA"),
+            personas=["default", "pirate", "developer", "cowboy", "robot"],
+            selected_persona=os.getenv("AGENT_PERSONA", "default"),
             gemini_api_key=os.getenv("GEMINI_API_KEY"),
             assemblyai_api_key=os.getenv("ASSEMBLYAI_API_KEY"),
             murf_api_key=os.getenv("MURF_API_KEY"),
@@ -65,11 +66,11 @@ def initialize_services(config: APIKeyConfig = None) -> APIKeyConfig:
     global stt_service, llm_service, tts_service, database_service, assemblyai_streaming_service, murf_websocket_service
     if config.are_keys_valid:
         stt_service = STTService(config.assemblyai_api_key)
-        llm_service = LLMService(config.gemini_api_key, persona=config.persona)
+        llm_service = LLMService(config.gemini_api_key, persona=config.selected_persona)
         tts_service = TTSService(config.murf_api_key, config.murf_voice_id)
         assemblyai_streaming_service = AssemblyAIStreamingService(config.assemblyai_api_key)
         murf_websocket_service = MurfWebSocketService(config.murf_api_key, config.murf_voice_id)
-        logger.info(f"✅ All AI services initialized successfully. Persona: {config.persona or 'Default helpful assistant'}")
+        logger.info(f"✅ All AI services initialized successfully. Persona: {config.selected_persona or 'Default helpful assistant'}")
     else:
         missing_keys = config.validate_keys()
         logger.error(f"❌ Missing API keys: {missing_keys}")
@@ -191,7 +192,7 @@ async def clear_session_history(session_id: str = Path(..., description="Session
             logger.info(f"Chat history cleared for session: {session_id}")
             return {"success": True, "message": f"Chat history cleared for session {session_id}"}
         else:
-            return {"success": False, "message": f"Failed to clear chat history for session {session_id}"}
+                return {"success": False, "message": f"Failed to clear chat history for session {session_id}"}
     except Exception as e:
         logger.error(f"Error clearing session history for {session_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -219,6 +220,31 @@ async def update_configuration(config: APIKeyConfig):
     except Exception as e:
         logger.error(f"Error updating configuration: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to update configuration: {str(e)}")
+
+
+@app.post("/api/persona/switch")
+async def switch_persona(request: Request):
+    """Switch the AI persona"""
+    try:
+        # Parse the JSON body
+        body = await request.json()
+        persona = body.get("persona")
+        
+        if not persona:
+            raise HTTPException(status_code=400, detail="Persona not provided")
+        
+        if llm_service:
+            llm_service.set_persona(persona)
+            return {
+                "success": True,
+                "message": f"Persona switched to {persona}",
+                "persona": persona
+            }
+        else:
+            raise HTTPException(status_code=500, detail="LLM service not initialized")
+    except Exception as e:
+        logger.error(f"Error switching persona: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to switch persona: {str(e)}")
 
 
 @app.post("/agent/chat/{session_id}", response_model=VoiceChatResponse)

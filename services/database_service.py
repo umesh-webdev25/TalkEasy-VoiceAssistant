@@ -162,24 +162,34 @@ class DatabaseService:
             return list(self.user_sessions.items())[:limit]
     
     async def clear_session_history(self, session_id: str) -> bool:
-        """Clear chat history for a specific session"""
-        if self.db is not None:
-            try:
-                result = await self.db.chat_sessions.delete_one({"session_id": session_id})
-                logger.info(f"Cleared chat history for session {session_id}")
-                return result.deleted_count > 0
-            except Exception as e:
-                logger.error(f"Failed to clear session history from MongoDB: {str(e)}")
+            """Delete an entire session including history and metadata"""
+            if self.db is not None:
+                try:
+                    result = await self.db.chat_sessions.delete_one({"session_id": session_id})
+                    logger.info(f"Deleted entire session {session_id} from MongoDB")
+                    # Also remove from in-memory cache
+                    if session_id in self.in_memory_store:
+                        del self.in_memory_store[session_id]
+                    if session_id in self.user_sessions:
+                        del self.user_sessions[session_id]
+                    return result.deleted_count > 0
+                except Exception as e:
+                    logger.error(f"Failed to delete session {session_id} from MongoDB: {str(e)}")
+                    # Cleanup in-memory as fallback
+                    if session_id in self.in_memory_store:
+                        del self.in_memory_store[session_id]
+                    if session_id in self.user_sessions:
+                        del self.user_sessions[session_id]
+                    return True
+            else:
+                # Only in-memory deletion
                 if session_id in self.in_memory_store:
                     del self.in_memory_store[session_id]
+                if session_id in self.user_sessions:
+                    del self.user_sessions[session_id]
+                logger.info(f"Deleted entire session {session_id} from in-memory store")
                 return True
-        else:
-            if session_id in self.in_memory_store:
-                del self.in_memory_store[session_id]
-            if session_id in self.user_sessions:
-                del self.user_sessions[session_id]
-            return True
-    
+
     async def get_session_stats(self, session_id: str) -> Dict:
         """Get statistics for a specific session"""
         if self.db is not None:

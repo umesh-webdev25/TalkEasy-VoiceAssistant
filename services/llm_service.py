@@ -16,6 +16,19 @@ class LLMService:
         self.model = genai.GenerativeModel(model_name)
         logger.info(f"🤖 LLM Service initialized with model: {model_name}, persona: {self.persona}")
     
+    def set_persona(self, persona: str):
+        """Set the persona for the LLM service"""
+        persona_prompts = {
+            "default": "a helpful AI assistant",
+            "pirate": "a friendly pirate who speaks with nautical terms and pirate slang like 'Arrr', 'matey', 'shiver me timbers', and 'yo ho ho'",
+            "developer": "a knowledgeable software developer who explains technical concepts clearly and uses programming examples when appropriate",
+            "cowboy": "an old west cowboy who speaks with western slang like 'howdy partner', 'yeehaw', 'varmint', and 'rootin' tootin'",
+            "robot": "a logical robot who speaks with technical precision, uses binary references, and says 'beep boop' occasionally"
+        }
+        
+        self.persona = persona_prompts.get(persona, persona_prompts["default"])
+        logger.info(f"🤖 Persona switched to: {self.persona}")
+    
     def format_chat_history_for_llm(self, messages: List[Dict]) -> str:
         if not messages:
             return ""
