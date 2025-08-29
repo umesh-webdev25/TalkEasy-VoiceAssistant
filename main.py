@@ -502,68 +502,18 @@ async def handle_llm_streaming(user_message: str, session_id: str, websocket: We
                             search_results = await web_search_service.search_web(user_message, max_results=3)
                             web_search_results = web_search_service.format_search_results(search_results, user_message)
                             logger.info(f"✅ Web search completed with {len(search_results)} results")
+                            
+                            # If web search is enabled, yield the formatted search results directly as a single chunk and return
+                            yield web_search_results
+                            return
+                            
                         except Exception as search_error:
                             logger.error(f"Web search failed: {search_error}")
                             web_search_results = f"Web search unavailable: {str(search_error)}"
+                            yield web_search_results
+                            return
                     
-                    async for chunk in llm_service.generate_streaming_response(user_message, chat_history, web_search_results):
-                        if chunk:
-                            chunk_count += 1
-                            accumulated_response += chunk
-                            
-                            # Send chunk to client
-                            chunk_message = {
-                                "type": "llm_streaming_chunk",
-                                "chunk": chunk,
-                                "accumulated_length": len(accumulated_response),
-                                "timestamp": datetime.now().isoformat()
-                            }
-                            await manager.send_personal_message(json.dumps(chunk_message), websocket)
-                            
-                            yield chunk
-                    
-                    if not accumulated_response.strip():
-                        logger.error(f"❌ Empty accumulated response for: '{user_message}'")
-                        raise Exception("Empty response from LLM stream")
-                
-                # Send LLM stream to Murf and receive base64 audio
-                tts_start_message = {
-                    "type": "tts_streaming_start", 
-                    "message": "Starting TTS streaming with Murf WebSocket...",
-                    "timestamp": datetime.now().isoformat()
-                }
-                await manager.send_personal_message(json.dumps(tts_start_message), websocket)
-                
-                # Stream LLM text to Murf and get base64 audio back
-                async for audio_response in murf_websocket_service.stream_text_to_audio(llm_text_stream()):
-                    if audio_response["type"] == "audio_chunk":
-                        audio_chunk_count += 1
-                        total_audio_size += audio_response["chunk_size"]
-                        
-                        # Send audio data to client
-                        audio_message = {
-                            "type": "tts_audio_chunk",
-                            "audio_base64": audio_response["audio_base64"],
-                            "chunk_number": audio_response["chunk_number"],
-                            "chunk_size": audio_response["chunk_size"],
-                            "total_size": audio_response["total_size"],
-                            "is_final": audio_response["is_final"],
-                            "timestamp": audio_response["timestamp"]
-                        }
-                        await manager.send_personal_message(json.dumps(audio_message), websocket)
-                        
-                        # Check if this is the final chunk
-                        if audio_response["is_final"]:
-                            break
-                    
-                    elif audio_response["type"] == "status":
-                        # Send status updates to client
-                        status_message = {
-                            "type": "tts_status",
-                            "data": audio_response["data"],
-                            "timestamp": audio_response["timestamp"]
-                        }
-                        await manager.send_personal_message(json.dumps(status_message), websocket)
+                    # Normal LLM streaming for non-web-search queries
                 
             except Exception as e:
                 logger.error(f"Error with Murf WebSocket streaming: {str(e)}")
