@@ -96,3 +96,9 @@
 2025-08-29 00:02:57 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
 2025-08-29 00:02:58 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
 2025-08-29 00:02:58 - services.assemblyai_streaming_service - ERROR - AssemblyAI streaming error: Unauthorized Connection: Invalid API key
+2025-08-29 17:15:42 - services.murf_websocket_service - ERROR - Failed to connect to Murf WebSocket: 
+2025-08-29 17:15:44 - main - ERROR - Error with Murf WebSocket streaming: 
+2025-08-29 17:15:45 - services.database_service - ERROR - Invalid parameters for add_message_to_history: session_id=session_ty9ypwnda_1756466899680, role=assistant, content_length=0
+2025-08-29 17:15:57 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-29 17:16:05 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-29 23:13:13 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
