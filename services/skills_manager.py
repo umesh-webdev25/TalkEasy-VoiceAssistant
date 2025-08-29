@@ -1,6 +1,6 @@
 import logging
 import os
-from services.web_search_service import web_search_service
+from services.custom_web_search_service import custom_web_search_service as web_search_service
 from services.news_service import NewsService
 
 logger = logging.getLogger(__name__)

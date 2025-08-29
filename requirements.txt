@@ -13,7 +13,5 @@ motor==3.3.2
 ddgs==9.5.4
 aiohttp==3.9.1
 feedparser==6.0.10
-tavily-python==0.3.1
 --prefer-binary
-tiktoken==0.5.2; platform_machine != "x86_64" or platform_system != "Linux"
 
