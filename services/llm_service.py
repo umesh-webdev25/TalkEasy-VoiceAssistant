@@ -1,7 +1,7 @@
 import google.generativeai as genai
 from typing import List, Dict, Optional, AsyncGenerator, Union
 import logging
-from services.web_search_service import web_search_service
+from services.custom_web_search_service import custom_web_search_service as web_search_service
 from services.skills_manager import skills_manager
 
 logger = logging.getLogger(__name__)
