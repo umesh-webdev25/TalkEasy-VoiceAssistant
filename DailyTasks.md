@@ -676,3 +676,17 @@ Here’s what I accomplished:
 ✅ Prepped the foundation for adding final touches & features before the finish line
 
 💡 The result? The voice agent now feels less like a dev prototype and more like a real product — customizable, clean, and user-ready.
+
+🌍 Day 28 of 30 - Murf AI Voice Agent Challenge | Deploying the Agent 🚀🤖
+
+With just 2 days left, today’s milestone was all about making my AI Voice Agent accessible to the world by deploying it! 🌐✨
+
+Here’s what I accomplished:
+
+✅ Chose Render as the hosting platform (great free tier + smooth setup)
+✅ Deployed the full FastAPI backend + WebSocket services
+✅ Configured environment variables and API key management safely
+✅ Tested the live deployment end-to-end to ensure transcription → LLM → Murf → streaming audio loop works in production
+✅ Shared the deployed link for others to try 🎉
+
+💡 The result? My agent is no longer just running locally — it’s now live on the cloud and can be accessed from anywhere. A huge step toward making it usable for real-world scenarios!
