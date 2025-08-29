@@ -9,6 +9,7 @@ import json
 import asyncio
 from datetime import datetime
 from dotenv import load_dotenv
+from typing import Dict, Optional
 
 from models.schemas import (
     VoiceChatResponse, 
@@ -44,12 +45,12 @@ app = FastAPI(
 # Mount static files and templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
-stt_service: STTService = None
-llm_service: LLMService = None
-tts_service: TTSService = None
-database_service: DatabaseService = None
-assemblyai_streaming_service: AssemblyAIStreamingService = None
-murf_websocket_service: MurfWebSocketService = None
+stt_service: Optional[STTService] = None
+llm_service: Optional[LLMService] = None
+tts_service: Optional[TTSService] = None
+database_service: Optional[DatabaseService] = None
+assemblyai_streaming_service: Optional[AssemblyAIStreamingService] = None
+murf_websocket_service: Optional[MurfWebSocketService] = None
 
 
 def initialize_services(config: APIKeyConfig = None) -> APIKeyConfig:
@@ -76,6 +77,8 @@ def initialize_services(config: APIKeyConfig = None) -> APIKeyConfig:
     else:
         missing_keys = config.validate_keys()
         logger.error(f"❌ Missing API keys: {missing_keys}")
+    
+    # Always initialize database service
     database_service = DatabaseService(config.mongodb_url)
     
     return config
@@ -108,6 +111,10 @@ async def shutdown_event():
     
     if database_service:
         await database_service.close()
+    
+    # Clean up session locks
+    global session_locks
+    session_locks.clear()
     
     logger.info("✅ Application shutdown completed")
 
@@ -154,6 +161,14 @@ async def get_backend_status():
 async def get_all_chat_histories():
     """Get all chat histories across all sessions"""
     try:
+        if not database_service:
+            return {
+                "success": False,
+                "total_sessions": 0,
+                "chat_histories": [],
+                "error": "Database service not available"
+            }
+            
         histories = await database_service.get_all_chat_histories()
         return {
             "success": True,
@@ -169,6 +184,15 @@ async def get_all_chat_histories():
 async def get_chat_history_endpoint(session_id: str = Path(..., description="Session ID")):
     """Get chat history for a session"""
     try:
+        if not database_service:
+            return ChatHistoryResponse(
+                success=False,
+                session_id=session_id,
+                messages=[],
+                message_count=0,
+                error="Database service not available"
+            )
+            
         chat_history = await database_service.get_chat_history(session_id)
         return ChatHistoryResponse(
             success=True,
@@ -182,19 +206,23 @@ async def get_chat_history_endpoint(session_id: str = Path(..., description="Ses
             success=False,
             session_id=session_id,
             messages=[],
-            message_count=0
+            message_count=0,
+            error=str(e)
         )
 
 @app.delete("/agent/chat/{session_id}/history")
 async def clear_session_history(session_id: str = Path(..., description="Session ID")):
     """Clear chat history for a specific session"""
     try:
+        if not database_service:
+            return {"success": False, "message": "Database service not available"}
+            
         success = await database_service.clear_session_history(session_id)
         if success:
             logger.info(f"Chat history cleared for session: {session_id}")
             return {"success": True, "message": f"Chat history cleared for session {session_id}"}
         else:
-                return {"success": False, "message": f"Failed to clear chat history for session {session_id}"}
+            return {"success": False, "message": f"Failed to clear chat history for session {session_id}"}
     except Exception as e:
         logger.error(f"Error clearing session history for {session_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -446,7 +474,7 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 # Global locks to prevent concurrent LLM streaming for the same session
-session_locks = {}
+session_locks: Dict[str, asyncio.Lock] = {}
 
 # Global function to handle LLM streaming (moved outside WebSocket handler to prevent duplicates)
 async def handle_llm_streaming(user_message: str, session_id: str, websocket: WebSocket, web_search_enabled: bool = False):
@@ -492,7 +520,6 @@ async def handle_llm_streaming(user_message: str, session_id: str, websocket: We
                 # Create async generator for LLM streaming
                 async def llm_text_stream():
                     nonlocal accumulated_response
-                    chunk_count = 0
                     
                     # Perform web search if enabled
                     web_search_results = ""
@@ -503,9 +530,9 @@ async def handle_llm_streaming(user_message: str, session_id: str, websocket: We
                             web_search_results = web_search_service.format_search_results(search_results, user_message)
                             logger.info(f"✅ Web search completed with {len(search_results)} results")
                             
-                            # If web search is enabled, yield the formatted search results directly as a single chunk and return
+                            # If web search is enabled, yield the formatted search results directly as a single chunk
                             yield web_search_results
-                            return
+                            # Do not return here; continue to generate LLM streaming response with web search results as context
                             
                         except Exception as search_error:
                             logger.error(f"Web search failed: {search_error}")
@@ -514,6 +541,61 @@ async def handle_llm_streaming(user_message: str, session_id: str, websocket: We
                             return
                     
                     # Normal LLM streaming for non-web-search queries
+                    llm_stream = llm_service.generate_streaming_response(user_message, chat_history, web_search_results if web_search_enabled else None)
+                    async for chunk in llm_stream:
+                        if chunk:
+                            accumulated_response += chunk
+                            chunk_message = {
+                                "type": "llm_streaming_chunk",
+                                "chunk": chunk,
+                                "accumulated_length": len(accumulated_response),
+                                "timestamp": datetime.now().isoformat()
+                            }
+                            await manager.send_personal_message(json.dumps(chunk_message), websocket)
+                            yield chunk
+                    
+                    if not accumulated_response.strip():
+                        logger.error(f"❌ Empty accumulated response for: '{user_message}'")
+                        raise Exception("Empty response from LLM stream")
+                
+                # Send LLM stream to Murf and receive base64 audio
+                tts_start_message = {
+                    "type": "tts_streaming_start", 
+                    "message": "Starting TTS streaming with Murf WebSocket...",
+                    "timestamp": datetime.now().isoformat()
+                }
+                await manager.send_personal_message(json.dumps(tts_start_message), websocket)
+                
+                # Stream LLM text to Murf and get base64 audio back
+                async for audio_response in murf_websocket_service.stream_text_to_audio(llm_text_stream()):
+                    if audio_response["type"] == "audio_chunk":
+                        audio_chunk_count += 1
+                        total_audio_size += audio_response["chunk_size"]
+                        
+                        # Send audio data to client
+                        audio_message = {
+                            "type": "tts_audio_chunk",
+                            "audio_base64": audio_response["audio_base64"],
+                            "chunk_number": audio_response["chunk_number"],
+                            "chunk_size": audio_response["chunk_size"],
+                            "total_size": audio_response["total_size"],
+                            "is_final": audio_response["is_final"],
+                            "timestamp": audio_response["timestamp"]
+                        }
+                        await manager.send_personal_message(json.dumps(audio_message), websocket)
+                        
+                        # Check if this is the final chunk
+                        if audio_response["is_final"]:
+                            break
+                    
+                    elif audio_response["type"] == "status":
+                        # Send status updates to client
+                        status_message = {
+                            "type": "tts_status",
+                            "data": audio_response["data"],
+                            "timestamp": audio_response["timestamp"]
+                        }
+                        await manager.send_personal_message(json.dumps(status_message), websocket)
                 
             except Exception as e:
                 logger.error(f"Error with Murf WebSocket streaming: {str(e)}")
@@ -533,7 +615,7 @@ async def handle_llm_streaming(user_message: str, session_id: str, websocket: We
             
             # Save to chat history
             try:
-                if database_service:
+                if database_service and accumulated_response:
                     save_success = await database_service.add_message_to_history(session_id, "assistant", accumulated_response)
             except Exception as e:
                 logger.error(f"Failed to save assistant response to history: {str(e)}")
@@ -562,7 +644,9 @@ async def handle_llm_streaming(user_message: str, session_id: str, websocket: We
             await manager.send_personal_message(json.dumps(error_message), websocket)
         
         finally:
-            pass  # Session lock is automatically released
+            # Clean up session lock if no longer needed
+            if session_id in session_locks:
+                del session_locks[session_id]
 
 
 @app.websocket("/ws/audio-stream")
@@ -572,6 +656,7 @@ async def audio_stream_websocket(websocket: WebSocket):
     # Try to get session_id from query parameters first
     query_params = dict(websocket.query_params)
     session_id = query_params.get('session_id')
+    web_search_enabled = query_params.get('web_search', 'false').lower() == 'true'
     
     if not session_id:
         session_id = str(uuid.uuid4())
@@ -587,7 +672,6 @@ async def audio_stream_websocket(websocket: WebSocket):
         nonlocal last_processed_transcript, last_processing_time
         try:
             if is_websocket_active and manager.is_connected(websocket):
-                await manager.send_personal_message(json.dumps(transcript_data), websocket)
                 # Only show final transcriptions and trigger LLM streaming
                 if transcript_data.get("type") == "final_transcript":
                     await manager.send_personal_message(json.dumps(transcript_data), websocket)
@@ -611,8 +695,7 @@ async def audio_stream_websocket(websocket: WebSocket):
                         last_processed_transcript = final_text
                         last_processing_time = current_time
                         
-                        # Check if web search is enabled from the transcript data
-                        web_search_enabled = transcript_data.get("web_search_enabled", False)
+                        # Pass web_search_enabled to LLM streaming
                         await handle_llm_streaming(final_text, session_id, websocket, web_search_enabled)
                         
         except Exception as e:
@@ -636,6 +719,7 @@ async def audio_stream_websocket(websocket: WebSocket):
             "session_id": session_id,
             "audio_filename": audio_filename,
             "transcription_enabled": assemblyai_streaming_service is not None,
+            "web_search_enabled": web_search_enabled,
             "timestamp": datetime.now().isoformat()
         }
         await manager.send_personal_message(json.dumps(welcome_message), websocket)
@@ -654,15 +738,20 @@ async def audio_stream_websocket(websocket: WebSocket):
                         # Try to parse as JSON first (for session_id message)
                         try:
                             command_data = json.loads(text_data)
-                            if isinstance(command_data, dict) and command_data.get("type") == "session_id":
-                                # Update session_id if provided from frontend
-                                new_session_id = command_data.get("session_id")
-                                if new_session_id and new_session_id != session_id:
-                                    logger.info(f"Updating session_id from {session_id} to {new_session_id}")
-                                    session_id = new_session_id
-                                    # Update audio filename with new session ID
-                                    audio_filename = f"streamed_audio_{session_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
-                                    audio_filepath = os.path.join("streamed_audio", audio_filename)
+                            if isinstance(command_data, dict):
+                                if command_data.get("type") == "session_id":
+                                    # Update session_id if provided from frontend
+                                    new_session_id = command_data.get("session_id")
+                                    if new_session_id and new_session_id != session_id:
+                                        logger.info(f"Updating session_id from {session_id} to {new_session_id}")
+                                        session_id = new_session_id
+                                        # Update audio filename with new session ID
+                                        audio_filename = f"streamed_audio_{session_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
+                                        audio_filepath = os.path.join("streamed_audio", audio_filename)
+                                elif command_data.get("type") == "web_search_toggle":
+                                    # Update web search setting
+                                    web_search_enabled = command_data.get("enabled", False)
+                                    logger.info(f"Web search {'enabled' if web_search_enabled else 'disabled'}")
                                 continue
                         except json.JSONDecodeError:
                             # Not JSON, treat as regular command

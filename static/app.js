@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
   // Global variables
   let sessionId = getSessionIdFromUrl() || generateSessionId();
+  let webSearchEnabled = false;
 
   // DOM elements
   const toggleChatHistoryBtn = document.getElementById("toggleLogs");
@@ -50,6 +51,24 @@ document.addEventListener("DOMContentLoaded", function () {
   const conversationList = document.getElementById("conversationList");
   const toggleClearHistory = document.getElementById("toggleClear");
 
+  // Web search checkbox handling
+  const webSearchBtn = document.getElementById("webSearchBtn");
+  const webSearchCheckbox = document.getElementById("webSearchCheckbox");
+
+  if (webSearchBtn && webSearchCheckbox) {
+    webSearchBtn.addEventListener("click", () => {
+      webSearchCheckbox.checked = !webSearchCheckbox.checked;
+      webSearchEnabled = webSearchCheckbox.checked;
+      webSearchBtn.classList.toggle("active", webSearchCheckbox.checked);
+      updateStreamingStatus(`Web search ${webSearchEnabled ? 'enabled' : 'disabled'}`, "info");
+    });
+
+    webSearchCheckbox.addEventListener("change", (event) => {
+      webSearchEnabled = event.target.checked;
+      webSearchBtn.classList.toggle("active", webSearchEnabled);
+    });
+  }
+
   // Function to toggle conversation history popup
   function toggleConversationHistory() {
     if (conversationHistoryPopup.style.display === "none" || conversationHistoryPopup.style.display === "") {
@@ -77,21 +96,31 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     } catch (error) {
       console.error("Failed to load conversation history:", error);
+      conversationList.innerHTML = '<p class="no-history">Error loading conversations.</p>';
     }
   }
 
   // Function to display conversation list
   function displayConversationList(conversations) {
     conversationList.innerHTML = ""; // Clear existing list
+    
+    if (!conversations || conversations.length === 0) {
+      conversationList.innerHTML = '<p class="no-history">No conversations found.</p>';
+      return;
+    }
+    
     conversations.forEach(conversation => {
       const listItem = document.createElement("div");
       listItem.className = "conversation-list-item";
       listItem.style.borderBottom = "1px solid #ccc";
       listItem.style.padding = "8px 0";
+      listItem.style.cursor = "pointer";
 
       // First line: message
       const messageDiv = document.createElement("div");
-      messageDiv.textContent = conversation.messages[0].content;
+      messageDiv.textContent = conversation.messages && conversation.messages.length > 0 
+        ? conversation.messages[0].content 
+        : "Empty conversation";
 
       // Second line: last updated
       const updatedDiv = document.createElement("div");
@@ -110,6 +139,7 @@ document.addEventListener("DOMContentLoaded", function () {
       conversationList.appendChild(listItem);
     });
   }
+
   // Function to load messages for a selected conversation
   async function loadConversationMessages(sessionId) {
     window.location.href = `/?session_id=${sessionId}`;
@@ -160,25 +190,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Initialize persona selector
   initializePersonaSelector();
-// Web search checkbox state
-let webSearchEnabled = false;
-
-// Add event listener for web search checkbox
-const btn = document.getElementById("webSearchBtn");
-const checkbox = document.getElementById("webSearchCheckbox");
-
-btn.addEventListener("click", () => {
-  checkbox.checked = !checkbox.checked;
-  btn.classList.toggle("active", checkbox.checked);
-
-  // Manually trigger the change handler
-  checkbox.dispatchEvent(new Event("change"));
-});
-
-checkbox.addEventListener("change", (event) => {
-  webSearchEnabled = event.target.checked;
-});
-
 
   // Function to perform web search and display results
   async function performWebSearch(query) {
@@ -216,7 +227,13 @@ checkbox.addEventListener("change", (event) => {
     const streamingStatusLog = document.getElementById("streamingStatusLog");
     if (!streamingStatusLog) return;
 
-    if (results.length === 0) {
+    // Remove any existing web search results
+    const existingResults = streamingStatusLog.querySelector(".web-search-results");
+    if (existingResults) {
+      existingResults.remove();
+    }
+
+    if (!results || results.length === 0) {
       updateStreamingStatus(`No web search results found for: "${query}"`, "warning");
       return;
     }
@@ -247,11 +264,11 @@ checkbox.addEventListener("change", (event) => {
       resultDiv.style.border = "1px solid #dee2e6";
       
       resultDiv.innerHTML = `
-        <div style="font-weight: bold; color: #495057;">${index + 1}. ${result.title}</div>
-        <div style="font-size: 12px; color: #6c757d; margin: 4px 0;">${result.snippet}</div>
+        <div style="font-weight: bold; color: #495057;">${index + 1}. ${result.title || 'No title'}</div>
+        <div style="font-size: 12px; color: #6c757d; margin: 4px 0;">${result.snippet || 'No snippet available'}</div>
         <div style="font-size: 11px; color: #007bff;">
-          <a href="${result.url}" target="_blank" style="color: inherit; text-decoration: none;">
-            🔗 ${result.url}
+          <a href="${result.url || '#'}" target="_blank" style="color: inherit; text-decoration: none;">
+            🔗 ${result.url || 'No URL'}
           </a>
         </div>
       `;
@@ -263,123 +280,6 @@ checkbox.addEventListener("change", (event) => {
     streamingStatusLog.appendChild(resultsContainer);
     streamingStatusLog.scrollTop = streamingStatusLog.scrollHeight;
   }
-
-  // Modify startAudioStreaming to send webSearchEnabled flag
-  const originalStartAudioStreaming = startAudioStreaming;
-
-  startAudioStreaming = async function () {
-    try {
-      // Reset streaming state and UI
-      resetStreamingState();
-
-      updateConnectionStatus("connecting", "Connecting...");
-
-      // Clear any previous transcriptions
-      clearPreviousTranscriptions();
-
-      // Connect to WebSocket with session ID
-      audioStreamSocket = new WebSocket(`wss://three0days-murf-ai-agent.onrender.com/ws/audio-stream?session_id=${sessionId}`);
-
-      audioStreamSocket.onopen = function (event) {
-        updateConnectionStatus("connected", "Connected");
-        updateStreamingStatus("Connected to server", "success");
-
-        // Send session ID to establish the session on the backend
-        audioStreamSocket.send(JSON.stringify({
-          type: "session_id",
-          session_id: sessionId,
-          web_search: webSearchEnabled
-        }));
-      };
-
-      audioStreamSocket.onmessage = function (event) {
-        const data = JSON.parse(event.data);
-
-        if (data.type === "audio_stream_ready") {
-          updateStreamingStatus(
-            `Ready to stream audio with transcription. Session: ${data.session_id}`,
-            "info"
-          );
-          streamingSessionId.textContent = `Session: ${data.session_id}`;
-
-          // Ensure the frontend session ID matches the backend
-          if (data.session_id !== sessionId) {
-            sessionId = data.session_id;
-            updateUrlWithSessionId(sessionId);
-          }
-
-          if (data.transcription_enabled) {
-            updateStreamingStatus("🎙️ Real-time transcription enabled", "success");
-          }
-          startRecordingForStreaming();
-        } else if (data.type === "final_transcript") {
-          if (data.text && data.text.trim()) {
-            // ✅ replace the last partial with the final transcript
-            updateUserMessageInHistory(data.text);
-            
-            // Perform web search if enabled
-            if (webSearchEnabled) {
-              performWebSearch(data.text);
-            }
-          }
-        } else if (data.type === "partial_transcript") {
-          if (data.text && data.text.trim()) {
-            // ✅ still update the same message in place
-            updateUserMessageInHistory(data.text);
-          }
-        }
-        else if (data.type === "llm_streaming_start") {
-          // Add AI response placeholder with dots loader
-          addAIResponsePlaceholder();
-        } else if (data.type === "llm_streaming_chunk") {
-          // Display LLM text chunks as they arrive
-          updateAIResponse(data.chunk, data.accumulated_length);
-        } else if (data.type === "tts_audio_chunk") {
-          // Handle audio base64 chunks from TTS
-          handleAudioChunk(data);
-        } else if (data.type === "llm_streaming_complete") {
-          // Finalize AI response
-          finalizeAIResponse(data.complete_response);
-
-          // Reload chat history after conversation is complete
-          setTimeout(() => {
-            loadChatHistory();
-          }, 1000);
-        } else if (data.type === "transcription_complete") {
-          if (data.text && data.text.trim()) {
-            updateStreamingStatus(`✅ COMPLETE TRANSCRIPTION: "${data.text}"`, "success");
-          } else {
-            updateStreamingStatus("⚠️ No speech detected in recording", "warning");
-          }
-        } else if (data.type === "transcription_error") {
-          updateStreamingStatus("❌ Transcription error: " + data.message, "error");
-        } else if (data.type === "llm_streaming_error") {
-          updateStreamingStatus(`❌ ${data.message}`, "error");
-          removeAIResponsePlaceholder();
-        } else if (data.type === "tts_streaming_error") {
-          updateStreamingStatus(`❌ ${data.message}`, "error");
-        }
-      };
-
-      audioStreamSocket.onerror = function (error) {
-        console.error("WebSocket error:", error);
-        updateConnectionStatus("error", "Connection Error");
-        updateStreamingStatus("WebSocket connection error", "error");
-      };
-
-      audioStreamSocket.onclose = function (event) {
-        updateConnectionStatus("disconnected", "Disconnected");
-        updateStreamingStatus("Connection closed", "warning");
-      };
-    } catch (error) {
-      console.error("Error starting audio streaming:", error);
-      updateConnectionStatus("error", "Error");
-      updateStreamingStatus(
-        "Error starting streaming: " + error.message,
-        "error"
-      );
-    }
-  };
 
   function getSessionIdFromUrl() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -429,9 +329,18 @@ checkbox.addEventListener("change", (event) => {
       const data = await response.json();
       if (data.success) {
         displayChatHistory(data.messages);
+      } else {
+        const chatHistoryList = document.getElementById("chatHistoryList");
+        if (chatHistoryList) {
+          chatHistoryList.innerHTML = '<p class="no-history">No previous messages in this session. <br> Start your Conversation</p>';
+        }
       }
     } catch (error) {
       console.error("Failed to load chat history:", error);
+      const chatHistoryList = document.getElementById("chatHistoryList");
+      if (chatHistoryList) {
+        chatHistoryList.innerHTML = '<p class="no-history">Error loading chat history.</p>';
+      }
     }
   }
 
@@ -444,9 +353,10 @@ checkbox.addEventListener("change", (event) => {
       chatHistoryList.innerHTML = "";
     }
 
-    if (messages.length === 0 && !isNewMessage) {
-      chatHistoryList.innerHTML =
-        '<p class="no-history">No previous messages in this session. <br> Start your Conversation</p>';
+    if (!messages || messages.length === 0) {
+      if (!isNewMessage) {
+        chatHistoryList.innerHTML = '<p class="no-history">No previous messages in this session. <br> Start your Conversation</p>';
+      }
       return;
     }
 
@@ -463,7 +373,7 @@ checkbox.addEventListener("change", (event) => {
       messageDiv.setAttribute("data-message-id", message.id || index);
 
       // Parse markdown content if available
-      let messageContent = message.content;
+      let messageContent = message.content || "";
       try {
         if (typeof marked !== "undefined") {
           messageContent = marked.parse(message.content);
@@ -471,6 +381,7 @@ checkbox.addEventListener("change", (event) => {
       } catch (error) {
         console.warn("Markdown parsing error:", error);
       }
+      
       messageDiv.innerHTML = `
               <div class="message-header">
                 <span class="message-role">${message.role === 'user' ? '👤 You' : '🤖 AI Assistant'}</span>
@@ -487,9 +398,11 @@ checkbox.addEventListener("change", (event) => {
 
         // Apply syntax highlighting if available
         if (typeof hljs !== "undefined") {
-          messageDiv.querySelectorAll("pre code").forEach((block) => {
-            hljs.highlightElement(block);
-          });
+          setTimeout(() => {
+            messageDiv.querySelectorAll("pre code").forEach((block) => {
+              hljs.highlightElement(block);
+            });
+          }, 100);
         }
 
         // Scroll to the new message
@@ -503,9 +416,11 @@ checkbox.addEventListener("change", (event) => {
 
     // Apply syntax highlighting to all code blocks if available
     if (typeof hljs !== "undefined" && !isNewMessage) {
-      chatHistoryList.querySelectorAll("pre code").forEach((block) => {
-        hljs.highlightElement(block);
-      });
+      setTimeout(() => {
+        chatHistoryList.querySelectorAll("pre code").forEach((block) => {
+          hljs.highlightElement(block);
+        });
+      }, 100);
     }
 
     // Scroll to bottom if it's not a new message (initial load)
@@ -520,18 +435,8 @@ checkbox.addEventListener("change", (event) => {
     if (audioStreamStatus) {
       const isVisible = audioStreamStatus.style.display !== "none";
       audioStreamStatus.style.display = isVisible ? "none" : "block";
-
-      // if (toggleChatHistoryBtn) {
-      //   toggleChatHistoryBtn.textContent = isVisible
-      //     ? ""
-      //     : "Hide Streaming Logs";
-      // }
     }
   }
-
-  // function showMessage(message, type) {
-  //   // Simple console log for now - can be enhanced with UI notifications
-  // }
 
   // ==================== AUDIO STREAMING FUNCTIONALITY ====================
 
@@ -555,71 +460,81 @@ checkbox.addEventListener("change", (event) => {
         // Send session ID to establish the session on the backend
         audioStreamSocket.send(JSON.stringify({
           type: "session_id",
-          session_id: sessionId
+          session_id: sessionId,
+          web_search: webSearchEnabled
         }));
       };
 
       audioStreamSocket.onmessage = function (event) {
-        const data = JSON.parse(event.data);
+        try {
+          const data = JSON.parse(event.data);
 
-        if (data.type === "audio_stream_ready") {
-          updateStreamingStatus(
-            `Ready to stream audio with transcription. Session: ${data.session_id}`,
-            "info"
-          );
-          streamingSessionId.textContent = `Session: ${data.session_id}`;
+          if (data.type === "audio_stream_ready") {
+            updateStreamingStatus(
+              `Ready to stream audio with transcription. Session: ${data.session_id}`,
+              "info"
+            );
+            if (streamingSessionId) {
+              streamingSessionId.textContent = `Session: ${data.session_id}`;
+            }
 
-          // Ensure the frontend session ID matches the backend
-          if (data.session_id !== sessionId) {
-            sessionId = data.session_id;
-            updateUrlWithSessionId(sessionId);
-          }
+            // Ensure the frontend session ID matches the backend
+            if (data.session_id !== sessionId) {
+              sessionId = data.session_id;
+              updateUrlWithSessionId(sessionId);
+            }
 
-          if (data.transcription_enabled) {
-            updateStreamingStatus("🎙️ Real-time transcription enabled", "success");
-          }
-          startRecordingForStreaming();
-        } else if (data.type === "final_transcript") {
-          if (data.text && data.text.trim()) {
-            // ✅ replace the last partial with the final transcript
-            updateUserMessageInHistory(data.text);
-          }
-        } else if (data.type === "partial_transcript") {
-          if (data.text && data.text.trim()) {
-            // ✅ still update the same message in place
-            updateUserMessageInHistory(data.text);
-          }
-        }
-        else if (data.type === "llm_streaming_start") {
-          // Add AI response placeholder with dots loader
-          addAIResponsePlaceholder();
-        } else if (data.type === "llm_streaming_chunk") {
-          // Display LLM text chunks as they arrive
-          updateAIResponse(data.chunk, data.accumulated_length);
-        } else if (data.type === "tts_audio_chunk") {
-          // Handle audio base64 chunks from TTS
-          handleAudioChunk(data);
-        } else if (data.type === "llm_streaming_complete") {
-          // Finalize AI response
-          finalizeAIResponse(data.complete_response);
+            if (data.transcription_enabled) {
+              updateStreamingStatus("🎙️ Real-time transcription enabled", "success");
+            }
+            startRecordingForStreaming();
+          } else if (data.type === "final_transcript") {
+            if (data.text && data.text.trim()) {
+              // ✅ replace the last partial with the final transcript
+              updateUserMessageInHistory(data.text);
+            }
+          } else if (data.type === "partial_transcript") {
+            if (data.text && data.text.trim()) {
+              // ✅ still update the same message in place
+              updateUserMessageInHistory(data.text);
+            }
+          } else if (data.type === "llm_streaming_start") {
+            // Add AI response placeholder with dots loader
+            addAIResponsePlaceholder();
+          } else if (data.type === "llm_streaming_chunk") {
+            // Display LLM text chunks as they arrive
+            updateAIResponse(data.chunk, data.accumulated_length);
+          } else if (data.type === "tts_audio_chunk") {
+            // Handle audio base64 chunks from TTS
+            handleAudioChunk(data);
+          } else if (data.type === "llm_streaming_complete") {
+            // Finalize AI response
+            finalizeAIResponse(data.complete_response);
 
-          // Reload chat history after conversation is complete
-          setTimeout(() => {
-            loadChatHistory();
-          }, 1000);
-        } else if (data.type === "transcription_complete") {
-          if (data.text && data.text.trim()) {
-            updateStreamingStatus(`✅ COMPLETE TRANSCRIPTION: "${data.text}"`, "success");
-          } else {
-            updateStreamingStatus("⚠️ No speech detected in recording", "warning");
+            // Reload chat history after conversation is complete
+            setTimeout(() => {
+              loadChatHistory();
+            }, 1000);
+          } else if (data.type === "transcription_complete") {
+            if (data.text && data.text.trim()) {
+              updateStreamingStatus(`✅ COMPLETE TRANSCRIPTION: "${data.text}"`, "success");
+            } else {
+              updateStreamingStatus("⚠️ No speech detected in recording", "warning");
+            }
+          } else if (data.type === "transcription_error") {
+            updateStreamingStatus("❌ Transcription error: " + data.message, "error");
+          } else if (data.type === "llm_streaming_error") {
+            updateStreamingStatus(`❌ ${data.message}`, "error");
+            removeAIResponsePlaceholder();
+          } else if (data.type === "tts_streaming_error") {
+            updateStreamingStatus(`❌ ${data.message}`, "error");
+          } else if (data.type === "web_search_initiated") {
+            updateStreamingStatus("🌐 Performing web search...", "info");
+          } else if (data.type === "web_search_complete") {
+            updateStreamingStatus("✅ Web search completed", "success");
           }
-        } else if (data.type === "transcription_error") {
-          updateStreamingStatus("❌ Transcription error: " + data.message, "error");
-        } else if (data.type === "llm_streaming_error") {
-          updateStreamingStatus(`❌ ${data.message}`, "error");
-          removeAIResponsePlaceholder();
-        } else if (data.type === "tts_streaming_error") {
-          updateStreamingStatus(`❌ ${data.message}`, "error");
+        } catch (error) {
+          console.error("Error processing WebSocket message:", error);
         }
       };
 
@@ -632,6 +547,7 @@ checkbox.addEventListener("change", (event) => {
       audioStreamSocket.onclose = function (event) {
         updateConnectionStatus("disconnected", "Disconnected");
         updateStreamingStatus("Connection closed", "warning");
+        resetStreamingState();
       };
     } catch (error) {
       console.error("Error starting audio streaming:", error);
@@ -652,7 +568,7 @@ checkbox.addEventListener("change", (event) => {
     };
 
     // Check if the message already exists to avoid duplicates
-    const existingMessage = document.querySelector(`[data-message-id="${message.id}"]`);
+    const existingMessage = document.querySelector(`[data-message-id="user-${Date.now()}"]`);
     if (!existingMessage) {
       displayChatHistory([message], true);
     }
@@ -697,12 +613,14 @@ checkbox.addEventListener("change", (event) => {
               </div>
             `;
 
-    chatHistoryList.appendChild(messageDiv);
+    if (chatHistoryList) {
+      chatHistoryList.appendChild(messageDiv);
 
-    // Scroll to the message
-    setTimeout(() => {
-      messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 100);
+      // Scroll to the message
+      setTimeout(() => {
+        messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    }
   }
 
   // Update AI response with new content - optimized for smooth streaming
@@ -806,9 +724,11 @@ checkbox.addEventListener("change", (event) => {
 
           // Apply syntax highlighting if available
           if (typeof hljs !== "undefined") {
-            contentDiv.querySelectorAll("pre code").forEach((block) => {
-              hljs.highlightElement(block);
-            });
+            setTimeout(() => {
+              contentDiv.querySelectorAll("pre code").forEach((block) => {
+                hljs.highlightElement(block);
+              });
+            }, 100);
           }
         }
       } catch (error) {
@@ -915,19 +835,17 @@ checkbox.addEventListener("change", (event) => {
         audioStreamStream.getTracks().forEach((track) => track.stop());
         audioStreamStream = null;
       }
-      if (
-        audioStreamSocket &&
-        audioStreamSocket.readyState === WebSocket.OPEN
-      ) {
+      
+      if (audioStreamSocket && audioStreamSocket.readyState === WebSocket.OPEN) {
         audioStreamSocket.send("stop_streaming");
+        
+        // Close WebSocket after a short delay to allow final messages
+        setTimeout(() => {
+          if (audioStreamSocket) {
+            audioStreamSocket.close();
+          }
+        }, 1000);
       }
-
-      // Close WebSocket after a short delay to allow final messages
-      setTimeout(() => {
-        if (audioStreamSocket) {
-          audioStreamSocket.close();
-        }
-      }, 1000);
 
       // Update UI
       if (audioStreamBtn) {
@@ -1061,7 +979,6 @@ checkbox.addEventListener("change", (event) => {
 
         source.start(playheadTime);
         playheadTime += buffer.duration;
-
 
         // Continue playing remaining chunks
         if (audioChunks.length > 0) {
