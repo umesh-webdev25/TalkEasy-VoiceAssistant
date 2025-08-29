@@ -160,6 +160,226 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Initialize persona selector
   initializePersonaSelector();
+// Web search checkbox state
+let webSearchEnabled = false;
+
+// Add event listener for web search checkbox
+const btn = document.getElementById("webSearchBtn");
+const checkbox = document.getElementById("webSearchCheckbox");
+
+btn.addEventListener("click", () => {
+  checkbox.checked = !checkbox.checked;
+  btn.classList.toggle("active", checkbox.checked);
+
+  // Manually trigger the change handler
+  checkbox.dispatchEvent(new Event("change"));
+});
+
+checkbox.addEventListener("change", (event) => {
+  webSearchEnabled = event.target.checked;
+});
+
+
+  // Function to perform web search and display results
+  async function performWebSearch(query) {
+    try {
+      console.log("Performing web search for:", query);
+      
+      const response = await fetch('/api/web-search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: query })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log("Web search results:", data.results);
+        displayWebSearchResults(data.results, query);
+        return data.results;
+      } else {
+        console.error("Web search failed:", data.error_message);
+        updateStreamingStatus(`Web search failed: ${data.error_message}`, "error");
+        return [];
+      }
+    } catch (error) {
+      console.error("Error performing web search:", error);
+      updateStreamingStatus("Error performing web search", "error");
+      return [];
+    }
+  }
+
+  // Function to display web search results in the UI
+  function displayWebSearchResults(results, query) {
+    const streamingStatusLog = document.getElementById("streamingStatusLog");
+    if (!streamingStatusLog) return;
+
+    if (results.length === 0) {
+      updateStreamingStatus(`No web search results found for: "${query}"`, "warning");
+      return;
+    }
+
+    // Create a container for web search results
+    const resultsContainer = document.createElement("div");
+    resultsContainer.className = "web-search-results";
+    resultsContainer.style.marginTop = "10px";
+    resultsContainer.style.padding = "10px";
+    resultsContainer.style.backgroundColor = "#f8f9fa";
+    resultsContainer.style.borderRadius = "8px";
+    resultsContainer.style.borderLeft = "4px solid #007bff";
+
+    // Add header
+    const header = document.createElement("div");
+    header.innerHTML = `<strong>🌐 Web Search Results for: "${query}"</strong>`;
+    header.style.marginBottom = "10px";
+    header.style.color = "#007bff";
+    resultsContainer.appendChild(header);
+
+    // Add each result
+    results.forEach((result, index) => {
+      const resultDiv = document.createElement("div");
+      resultDiv.style.marginBottom = "8px";
+      resultDiv.style.padding = "8px";
+      resultDiv.style.backgroundColor = "white";
+      resultDiv.style.borderRadius = "4px";
+      resultDiv.style.border = "1px solid #dee2e6";
+      
+      resultDiv.innerHTML = `
+        <div style="font-weight: bold; color: #495057;">${index + 1}. ${result.title}</div>
+        <div style="font-size: 12px; color: #6c757d; margin: 4px 0;">${result.snippet}</div>
+        <div style="font-size: 11px; color: #007bff;">
+          <a href="${result.url}" target="_blank" style="color: inherit; text-decoration: none;">
+            🔗 ${result.url}
+          </a>
+        </div>
+      `;
+      
+      resultsContainer.appendChild(resultDiv);
+    });
+
+    // Add to streaming status log
+    streamingStatusLog.appendChild(resultsContainer);
+    streamingStatusLog.scrollTop = streamingStatusLog.scrollHeight;
+  }
+
+  // Modify startAudioStreaming to send webSearchEnabled flag
+  const originalStartAudioStreaming = startAudioStreaming;
+
+  startAudioStreaming = async function () {
+    try {
+      // Reset streaming state and UI
+      resetStreamingState();
+
+      updateConnectionStatus("connecting", "Connecting...");
+
+      // Clear any previous transcriptions
+      clearPreviousTranscriptions();
+
+      // Connect to WebSocket with session ID
+      audioStreamSocket = new WebSocket(`ws://localhost:8000/ws/audio-stream?session_id=${sessionId}`);
+
+      audioStreamSocket.onopen = function (event) {
+        updateConnectionStatus("connected", "Connected");
+        updateStreamingStatus("Connected to server", "success");
+
+        // Send session ID to establish the session on the backend
+        audioStreamSocket.send(JSON.stringify({
+          type: "session_id",
+          session_id: sessionId,
+          web_search: webSearchEnabled
+        }));
+      };
+
+      audioStreamSocket.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+
+        if (data.type === "audio_stream_ready") {
+          updateStreamingStatus(
+            `Ready to stream audio with transcription. Session: ${data.session_id}`,
+            "info"
+          );
+          streamingSessionId.textContent = `Session: ${data.session_id}`;
+
+          // Ensure the frontend session ID matches the backend
+          if (data.session_id !== sessionId) {
+            sessionId = data.session_id;
+            updateUrlWithSessionId(sessionId);
+          }
+
+          if (data.transcription_enabled) {
+            updateStreamingStatus("🎙️ Real-time transcription enabled", "success");
+          }
+          startRecordingForStreaming();
+        } else if (data.type === "final_transcript") {
+          if (data.text && data.text.trim()) {
+            // ✅ replace the last partial with the final transcript
+            updateUserMessageInHistory(data.text);
+            
+            // Perform web search if enabled
+            if (webSearchEnabled) {
+              performWebSearch(data.text);
+            }
+          }
+        } else if (data.type === "partial_transcript") {
+          if (data.text && data.text.trim()) {
+            // ✅ still update the same message in place
+            updateUserMessageInHistory(data.text);
+          }
+        }
+        else if (data.type === "llm_streaming_start") {
+          // Add AI response placeholder with dots loader
+          addAIResponsePlaceholder();
+        } else if (data.type === "llm_streaming_chunk") {
+          // Display LLM text chunks as they arrive
+          updateAIResponse(data.chunk, data.accumulated_length);
+        } else if (data.type === "tts_audio_chunk") {
+          // Handle audio base64 chunks from TTS
+          handleAudioChunk(data);
+        } else if (data.type === "llm_streaming_complete") {
+          // Finalize AI response
+          finalizeAIResponse(data.complete_response);
+
+          // Reload chat history after conversation is complete
+          setTimeout(() => {
+            loadChatHistory();
+          }, 1000);
+        } else if (data.type === "transcription_complete") {
+          if (data.text && data.text.trim()) {
+            updateStreamingStatus(`✅ COMPLETE TRANSCRIPTION: "${data.text}"`, "success");
+          } else {
+            updateStreamingStatus("⚠️ No speech detected in recording", "warning");
+          }
+        } else if (data.type === "transcription_error") {
+          updateStreamingStatus("❌ Transcription error: " + data.message, "error");
+        } else if (data.type === "llm_streaming_error") {
+          updateStreamingStatus(`❌ ${data.message}`, "error");
+          removeAIResponsePlaceholder();
+        } else if (data.type === "tts_streaming_error") {
+          updateStreamingStatus(`❌ ${data.message}`, "error");
+        }
+      };
+
+      audioStreamSocket.onerror = function (error) {
+        console.error("WebSocket error:", error);
+        updateConnectionStatus("error", "Connection Error");
+        updateStreamingStatus("WebSocket connection error", "error");
+      };
+
+      audioStreamSocket.onclose = function (event) {
+        updateConnectionStatus("disconnected", "Disconnected");
+        updateStreamingStatus("Connection closed", "warning");
+      };
+    } catch (error) {
+      console.error("Error starting audio streaming:", error);
+      updateConnectionStatus("error", "Error");
+      updateStreamingStatus(
+        "Error starting streaming: " + error.message,
+        "error"
+      );
+    }
+  };
 
   function getSessionIdFromUrl() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -251,16 +471,15 @@ document.addEventListener("DOMContentLoaded", function () {
       } catch (error) {
         console.warn("Markdown parsing error:", error);
       }
-
       messageDiv.innerHTML = `
-            <div class="message-header">
-              <span class="message-role">${message.role === 'user' ? '👤 You' : '🤖 AI Assistant'}</span>
-              <small class="message-time">${new Date(
+              <div class="message-header">
+                <span class="message-role">${message.role === 'user' ? '👤 You' : '🤖 AI Assistant'}</span>
+                <small class="message-time">${new Date(
         message.timestamp || Date.now()
       ).toLocaleString()}</small>
-            </div>
-            <div class="message-content">${messageContent}</div>
-          `;
+              </div>
+              <div class="message-content">${messageContent}</div>
+            `;
 
       // If it's a new message, add it to the bottom and scroll to it
       if (isNewMessage) {
@@ -465,18 +684,18 @@ document.addEventListener("DOMContentLoaded", function () {
     messageDiv.className = "chat-message assistant";
     messageDiv.setAttribute("data-message-id", "ai-response-placeholder");
     messageDiv.innerHTML = `
-            <div class="message-header">
-              <span class="message-role">🤖 AI Assistant</span>
-              <small class="message-time">${new Date().toLocaleString()}</small>
-            </div>
-            <div class="message-content">
-              <div class="dots-loader">
-                <span></span>
-                <span></span>
-                <span></span>
+              <div class="message-header">
+                <span class="message-role">🤖 AI Assistant</span>
+                <small class="message-time">${new Date().toLocaleString()}</small>
               </div>
-            </div>
-          `;
+              <div class="message-content">
+                <div class="dots-loader">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+            `;
 
     chatHistoryList.appendChild(messageDiv);
 
@@ -486,30 +705,78 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 100);
   }
 
-  // Update AI response with new content
+  // Update AI response with new content - optimized for smooth streaming
+  let aiResponseBuffer = '';
+  let aiResponseUpdatePending = false;
+  let aiResponseLastScrollTime = 0;
+
   function updateAIResponse(chunk, accumulatedLength) {
     let aiMessage = document.querySelector('.chat-message.assistant:last-child');
 
-    if (!aiMessage || !aiMessage.querySelector('.dots-loader')) {
+    if (!aiMessage) {
       return;
     }
 
     const contentDiv = aiMessage.querySelector('.message-content');
-    if (contentDiv) {
-      // Remove dots loader if it exists
-      const dotsLoader = contentDiv.querySelector('.dots-loader');
-      if (dotsLoader) {
-        contentDiv.removeChild(dotsLoader);
-      }
-
-      // ✅ Show only the latest chunk instead of appending
-      contentDiv.textContent = chunk;
+    if (!contentDiv) {
+      return;
     }
 
-    // Scroll to the message
-    setTimeout(() => {
+    // Remove dots loader if it exists (only on first chunk)
+    const dotsLoader = contentDiv.querySelector('.dots-loader');
+    if (dotsLoader) {
+      contentDiv.removeChild(dotsLoader);
+
+      // Create a dedicated text container for smooth updates
+      const textContainer = document.createElement('span');
+      textContainer.className = 'ai-response-text';
+      contentDiv.appendChild(textContainer);
+    }
+
+    // Add chunk to buffer
+    aiResponseBuffer += chunk;
+
+    // Schedule update if not already pending
+    if (!aiResponseUpdatePending) {
+      aiResponseUpdatePending = true;
+      requestAnimationFrame(updateAITextDisplay);
+    }
+
+    // Scroll to message with throttling (max once every 200ms)
+    const now = Date.now();
+    if (now - aiResponseLastScrollTime > 200) {
+      aiResponseLastScrollTime = now;
       aiMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 100);
+    }
+  }
+
+  function updateAITextDisplay() {
+    let aiMessage = document.querySelector('.chat-message.assistant:last-child');
+    if (!aiMessage) {
+      aiResponseUpdatePending = false;
+      return;
+    }
+
+    const contentDiv = aiMessage.querySelector('.message-content');
+    const textContainer = contentDiv?.querySelector('.ai-response-text');
+
+    if (textContainer && aiResponseBuffer.length > 0) {
+      // Update text content efficiently
+      textContainer.textContent = aiResponseBuffer;
+
+      // Add smooth animation class
+      textContainer.classList.add('smooth-update');
+
+      // Remove animation class after animation completes
+      setTimeout(() => {
+        textContainer.classList.remove('smooth-update');
+      }, 200);
+
+      // Clear buffer
+      aiResponseBuffer = '';
+    }
+
+    aiResponseUpdatePending = false;
   }
 
   // Finalize AI response with complete content
@@ -608,7 +875,7 @@ document.addEventListener("DOMContentLoaded", function () {
       isStreaming = true;
       if (audioStreamBtn) {
         audioStreamBtn.innerHTML =
-          '<span class="btn-icon">⏹️</span><span class="btn-text">Stop Conversation</span>';
+          '<span class="btn-icon"><i class="fa fa-microphone-slash"></i></span>';
         audioStreamBtn.className = "btn danger";
         audioStreamBtn.setAttribute("data-state", "recording");
       }
@@ -665,7 +932,7 @@ document.addEventListener("DOMContentLoaded", function () {
       // Update UI
       if (audioStreamBtn) {
         audioStreamBtn.innerHTML =
-          '<span class="btn-icon">🎤</span><span class="btn-text">Start Conversation</span>';
+          '<span class="btn-icon"><i class="fa fa-microphone"></i></span>';
         audioStreamBtn.className = "btn primary";
         audioStreamBtn.setAttribute("data-state", "ready");
       }
@@ -693,8 +960,8 @@ document.addEventListener("DOMContentLoaded", function () {
       const statusEntry = document.createElement("div");
       statusEntry.className = `streaming-status ${type}`;
       statusEntry.innerHTML = `
-              <strong>${new Date().toLocaleTimeString()}</strong>: ${message}
-            `;
+                <strong>${new Date().toLocaleTimeString()}</strong>: ${message}
+              `;
 
       streamingStatusLog.appendChild(statusEntry);
       streamingStatusLog.scrollTop = streamingStatusLog.scrollHeight;
@@ -795,19 +1062,16 @@ document.addEventListener("DOMContentLoaded", function () {
         source.start(playheadTime);
         playheadTime += buffer.duration;
 
-        updatePlaybackStatus(`Playing audio chunk`);
 
         // Continue playing remaining chunks
         if (audioChunks.length > 0) {
           chunkPlay();
         } else {
           isPlaying = false;
-          updatePlaybackStatus('Audio streaming paused - waiting for more chunks...');
         }
       } catch (error) {
         console.error('Error playing audio chunk:', error);
         isPlaying = false;
-        hideAudioPlaybackIndicator();
       }
     }
   }

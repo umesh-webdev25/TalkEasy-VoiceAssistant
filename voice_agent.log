@@ -1,98 +1,92 @@
-2025-08-24 22:26:54 - services.assemblyai_streaming_service - ERROR - Failed to start AssemblyAI Universal Streaming: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'streaming.assemblyai.com'. (_ssl.c:997)
-2025-08-24 22:35:59 - services.assemblyai_streaming_service - ERROR - Failed to start AssemblyAI Universal Streaming: server rejected WebSocket connection: HTTP 404
-2025-08-24 22:36:43 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-24 22:36:43 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-24 22:42:01 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-24 22:51:09 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-24 22:52:54 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-24 22:53:44 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-24 22:56:36 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-24 23:03:10 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-24 23:09:43 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-24 23:09:44 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-24 23:14:00 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-24 23:14:00 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-25 11:28:21 - services.assemblyai_streaming_service - ERROR - Failed to start AssemblyAI Universal Streaming: timed out
-2025-08-25 11:29:12 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-25 11:29:12 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-25 11:38:53 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-25 11:43:13 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-25 11:43:13 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-25 11:49:06 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-25 11:49:06 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-25 11:49:22 - main - ERROR - Error sending personal message: received 1001 (going away); then sent 1001 (going away)
-2025-08-25 11:49:22 - main - ERROR - Error sending personal message: received 1001 (going away); then sent 1001 (going away)
-2025-08-25 11:49:23 - main - ERROR - Error sending personal message: received 1001 (going away); then sent 1001 (going away)
-2025-08-25 11:49:24 - main - ERROR - Error sending personal message: received 1001 (going away); then sent 1001 (going away)
-2025-08-25 11:49:25 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-25 11:51:17 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-25 19:06:29 - services.assemblyai_streaming_service - ERROR - Failed to start AssemblyAI Universal Streaming: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'streaming.assemblyai.com'. (_ssl.c:997)
-2025-08-25 19:23:24 - services.assemblyai_streaming_service - ERROR - Failed to start AssemblyAI Universal Streaming: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'streaming.assemblyai.com'. (_ssl.c:997)
-2025-08-25 19:29:53 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-25 20:26:54 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-25 20:29:46 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-25 20:35:34 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-25 20:42:55 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-26 14:10:26 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-26 14:10:26 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-27 17:37:37 - services.assemblyai_streaming_service - ERROR - Failed to start AssemblyAI Universal Streaming: timed out
-2025-08-27 17:41:37 - services.news_service - ERROR - Error fetching news data: 401 Client Error: Unauthorized for url: https://newsapi.org/v2/top-headlines?category=general&apiKey=None
-2025-08-27 17:44:38 - services.assemblyai_streaming_service - ERROR - Failed to start AssemblyAI Universal Streaming: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'streaming.assemblyai.com'. (_ssl.c:997)
-2025-08-27 17:45:46 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-27 17:45:46 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-27 17:46:05 - services.assemblyai_streaming_service - ERROR - Failed to start AssemblyAI Universal Streaming: timed out
-2025-08-27 17:47:31 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-27 17:47:31 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-27 18:10:16 - services.news_service - ERROR - Error fetching news data: 401 Client Error: Unauthorized for url: https://newsapi.org/v2/top-headlines?category=general&apiKey=None
-2025-08-27 18:14:35 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-27 18:14:35 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-27 18:15:52 - services.news_service - ERROR - Error fetching news data: 401 Client Error: Unauthorized for url: https://newsapi.org/v2/top-headlines?category=general&apiKey=None
-2025-08-27 20:41:31 - main - ERROR - Error sending personal message: no close frame received or sent
-2025-08-27 20:41:31 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-27 20:47:01 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-28 08:02:34 - services.assemblyai_streaming_service - ERROR - Failed to start AssemblyAI Universal Streaming: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'streaming.assemblyai.com'. (_ssl.c:997)
-2025-08-28 08:02:58 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-28 08:02:58 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-28 08:04:17 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-28 08:11:28 - services.assemblyai_streaming_service - ERROR - Failed to start AssemblyAI Universal Streaming: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'streaming.assemblyai.com'. (_ssl.c:997)
-2025-08-28 08:11:56 - main - ERROR - Error sending personal message: no close frame received or sent
-2025-08-28 08:11:56 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-28 15:41:05 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-28 16:46:14 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-28 16:47:52 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-28 16:47:53 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2025-08-28 16:51:01 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-28 16:53:30 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-28 16:54:05 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-28 16:56:34 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-28 17:00:50 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-28 17:01:00 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-28 17:01:35 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-28 17:09:18 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-28 17:10:06 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-28 17:10:06 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-28 17:10:28 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-28 17:34:52 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-28 17:34:52 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-28 22:20:57 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-28 22:20:57 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-28 22:28:49 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-28 22:28:50 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-28 22:29:34 - main - ERROR - Error clearing session history for session_1569akbg0_1756399710310: 'DatabaseService' object has no attribute 'clear_session_history'
-2025-08-28 22:31:53 - main - ERROR - Error clearing session history for session_1569akbg0_1756399710310: 'DatabaseService' object has no attribute 'clear_session_history'
-2025-08-28 22:39:43 - main - ERROR - Error clearing session history for session_1569akbg0_1756399710310: 'DatabaseService' object has no attribute 'clear_session_history'
-2025-08-28 22:39:54 - main - ERROR - Error clearing session history for session_1569akbg0_1756399710310: 'DatabaseService' object has no attribute 'clear_session_history'
-2025-08-28 23:00:36 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-28 23:00:36 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-28 23:00:39 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-28 23:00:39 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-28 23:18:46 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-28 23:18:47 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-28 23:20:34 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-28 23:58:06 - main - ERROR - Error sending personal message: no close frame received or sent
-2025-08-28 23:58:07 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-28 23:58:16 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-29 00:02:32 - services.assemblyai_streaming_service - ERROR - AssemblyAI streaming error: Unauthorized Connection: Invalid API key
-2025-08-29 00:02:57 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
-2025-08-29 00:02:58 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
-2025-08-29 00:02:58 - services.assemblyai_streaming_service - ERROR - AssemblyAI streaming error: Unauthorized Connection: Invalid API key
+2025-08-29 08:53:15 - main - ERROR - Error sending personal message: no close frame received or sent
+2025-08-29 08:53:15 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-29 09:05:36 - main - ERROR - Error sending personal message: no close frame received or sent
+2025-08-29 09:05:36 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-29 09:06:13 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-29 09:06:13 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-29 09:07:08 - services.assemblyai_streaming_service - ERROR - Failed to start AssemblyAI Universal Streaming: timed out
+2025-08-29 09:08:07 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-29 09:08:08 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-29 09:15:52 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-29 09:15:52 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-29 09:43:51 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-29 09:52:59 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-29 09:53:00 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-29 09:55:53 - services.murf_websocket_service - ERROR - Failed to connect to Murf WebSocket: 
+2025-08-29 09:55:57 - main - ERROR - Error with Murf WebSocket streaming: 
+2025-08-29 09:56:02 - services.database_service - ERROR - Invalid parameters for add_message_to_history: session_id=session_4hy21x6nd_1756440625965, role=assistant, content_length=0
+2025-08-29 09:56:22 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-29 09:56:22 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-29 10:03:21 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
+2025-08-29 10:03:21 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
+2025-08-29 11:36:31 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-29 11:36:37 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-29 11:36:37 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-29 11:38:11 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-29 11:38:21 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-29 11:38:21 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-29 11:40:21 - services.llm_service - ERROR - LLM streaming response generation error for 'can you google about react...': 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-1.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 50
+}
+, links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, retry_delay {
+  seconds: 37
+}
+]
+2025-08-29 11:40:25 - services.murf_websocket_service - ERROR - Error in stream_text_to_audio: API quota exceeded. Please check your billing and rate limits.
+2025-08-29 11:40:25 - main - ERROR - Error with Murf WebSocket streaming: API quota exceeded. Please check your billing and rate limits.
+2025-08-29 11:40:25 - services.database_service - ERROR - Invalid parameters for add_message_to_history: session_id=session_bcvzxv6to_1756441894651, role=assistant, content_length=0
+2025-08-29 11:41:18 - services.llm_service - ERROR - LLM streaming response generation error for 'give me the latest information about react...': 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-1.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 50
+}
+, links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, retry_delay {
+  seconds: 41
+}
+]
+2025-08-29 11:41:18 - services.murf_websocket_service - ERROR - Error in stream_text_to_audio: API quota exceeded. Please check your billing and rate limits.
+2025-08-29 11:41:18 - main - ERROR - Error with Murf WebSocket streaming: API quota exceeded. Please check your billing and rate limits.
+2025-08-29 11:41:18 - services.database_service - ERROR - Invalid parameters for add_message_to_history: session_id=session_bcvzxv6to_1756441894651, role=assistant, content_length=0
+2025-08-29 11:43:53 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-29 11:43:53 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-29 12:42:23 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
+2025-08-29 12:46:17 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-29 12:46:21 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-29 12:52:34 - services.murf_websocket_service - ERROR - Failed to connect to Murf WebSocket: 
+2025-08-29 12:52:34 - main - ERROR - Error with Murf WebSocket streaming: 
+2025-08-29 12:52:34 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-29 12:52:34 - services.database_service - ERROR - Invalid parameters for add_message_to_history: session_id=session_bctbqogza_1756450451955, role=assistant, content_length=0
+2025-08-29 12:58:22 - main - ERROR - Error sending personal message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
+2025-08-29 13:19:23 - services.murf_websocket_service - ERROR - Failed to connect to Murf WebSocket: 
+2025-08-29 13:19:26 - main - ERROR - Error with Murf WebSocket streaming: 
+2025-08-29 13:19:29 - services.database_service - ERROR - Invalid parameters for add_message_to_history: session_id=session_vfffle92o_1756452732031, role=assistant, content_length=0
+2025-08-29 13:37:26 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-29 13:37:26 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2025-08-29 13:39:34 - main - ERROR - Error processing audio chunk: Cannot call "receive" once a disconnect message has been received.
+2025-08-29 13:39:34 - main - ERROR - Error sending personal message: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.

@@ -15,7 +15,9 @@ from models.schemas import (
     ChatHistoryResponse, 
     BackendStatusResponse,
     APIKeyConfig,
-    ErrorType
+    ErrorType,
+    WebSearchResponse,
+    WebSearchResult
 )
 from services.stt_service import STTService
 from services.llm_service import LLMService
@@ -247,6 +249,58 @@ async def switch_persona(request: Request):
         raise HTTPException(status_code=500, detail=f"Failed to switch persona: {str(e)}")
 
 
+@app.post("/api/web-search", response_model=WebSearchResponse)
+async def search_web_endpoint(request: Request):
+    """Search the web using Tavily API"""
+    try:
+        body = await request.json()
+        query = body.get("query", "")
+        
+        if not query.strip():
+            return WebSearchResponse(
+                success=False,
+                query=query,
+                results=[],
+                error_message="Search query cannot be empty"
+            )
+        
+        if not web_search_service or not web_search_service.is_configured():
+            return WebSearchResponse(
+                success=False,
+                query=query,
+                results=[],
+                error_message="Web search service is not available. Please check Tavily API key."
+            )
+        
+        # Perform web search
+        search_results = await web_search_service.search_web(query, max_results=3)
+        
+        # Convert to response format
+        web_results = [
+            WebSearchResult(
+                title=result["title"],
+                snippet=result["snippet"],
+                url=result["url"]
+            )
+            for result in search_results
+        ]
+        
+        return WebSearchResponse(
+            success=True,
+            query=query,
+            results=web_results
+        )
+        
+    except Exception as e:
+        logger.error(f"Web search error: {str(e)}")
+        return WebSearchResponse(
+            success=False,
+            query=body.get("query", "") if 'body' in locals() else "",
+            results=[],
+            error_message=str(e)
+        )
+
+
 @app.post("/agent/chat/{session_id}", response_model=VoiceChatResponse)
 async def chat_with_agent(
     session_id: str = Path(..., description="Session ID"),
@@ -395,7 +449,7 @@ manager = ConnectionManager()
 session_locks = {}
 
 # Global function to handle LLM streaming (moved outside WebSocket handler to prevent duplicates)
-async def handle_llm_streaming(user_message: str, session_id: str, websocket: WebSocket):
+async def handle_llm_streaming(user_message: str, session_id: str, websocket: WebSocket, web_search_enabled: bool = False):
     """Handle LLM streaming response and send to Murf WebSocket for TTS"""
     
     # Prevent concurrent streaming for the same session
@@ -426,6 +480,7 @@ async def handle_llm_streaming(user_message: str, session_id: str, websocket: We
                 "type": "llm_streaming_start",
                 "message": "LLM is generating response...",
                 "user_message": user_message,
+                "web_search_enabled": web_search_enabled,
                 "timestamp": datetime.now().isoformat()
             }
             await manager.send_personal_message(json.dumps(start_message), websocket)
@@ -438,7 +493,20 @@ async def handle_llm_streaming(user_message: str, session_id: str, websocket: We
                 async def llm_text_stream():
                     nonlocal accumulated_response
                     chunk_count = 0
-                    async for chunk in llm_service.generate_streaming_response(user_message, chat_history):
+                    
+                    # Perform web search if enabled
+                    web_search_results = ""
+                    if web_search_enabled and web_search_service and web_search_service.is_configured():
+                        try:
+                            logger.info(f"🔍 Performing web search for: {user_message}")
+                            search_results = await web_search_service.search_web(user_message, max_results=3)
+                            web_search_results = web_search_service.format_search_results(search_results, user_message)
+                            logger.info(f"✅ Web search completed with {len(search_results)} results")
+                        except Exception as search_error:
+                            logger.error(f"Web search failed: {search_error}")
+                            web_search_results = f"Web search unavailable: {str(search_error)}"
+                    
+                    async for chunk in llm_service.generate_streaming_response(user_message, chat_history, web_search_results):
                         if chunk:
                             chunk_count += 1
                             accumulated_response += chunk
@@ -529,6 +597,7 @@ async def handle_llm_streaming(user_message: str, session_id: str, websocket: We
                 "audio_chunks_received": audio_chunk_count,
                 "total_audio_size": total_audio_size,
                 "session_id": session_id,  # Include session_id in response
+                "web_search_enabled": web_search_enabled,
                 "timestamp": datetime.now().isoformat()
             }
             await manager.send_personal_message(json.dumps(complete_message), websocket)
@@ -591,7 +660,10 @@ async def audio_stream_websocket(websocket: WebSocket):
                         
                         last_processed_transcript = final_text
                         last_processing_time = current_time
-                        await handle_llm_streaming(final_text, session_id, websocket)
+                        
+                        # Check if web search is enabled from the transcript data
+                        web_search_enabled = transcript_data.get("web_search_enabled", False)
+                        await handle_llm_streaming(final_text, session_id, websocket, web_search_enabled)
                         
         except Exception as e:
             logger.error(f"Error sending transcription: {e}")

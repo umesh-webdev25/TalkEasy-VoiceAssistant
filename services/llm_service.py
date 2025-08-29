@@ -43,8 +43,8 @@ class LLMService:
     def _should_perform_web_search(self, user_message: str) -> bool:
         """Determine if a web search should be performed based on the user message"""
         search_triggers = [
-            'search for', 'find information about', 'look up', 
-            'what is', 'who is', 'when is', 'where is',
+            'search for', 'search google for', 'search google', 'find information about', 'look up', 
+            'what is', 'who is', 'when is', 'where is', 'how to',
             'latest news about', 'recent developments in',
             'tell me about', 'information on', 'details about'
         ]
@@ -52,11 +52,11 @@ class LLMService:
         user_message_lower = user_message.lower()
         
         # Check for explicit search commands
-        if any(trigger in user_message_lower for trigger in ['search for', 'find information about', 'look up']):
+        if any(trigger in user_message_lower for trigger in ['search for', 'search google for', 'search google', 'find information about', 'look up', 'tell me about']):
             return True
         
         # Check for information-seeking questions that would benefit from current data
-        if any(user_message_lower.startswith(trigger) for trigger in ['what is', 'who is', 'when is', 'where is']):
+        if any(user_message_lower.startswith(trigger) for trigger in ['what is', 'who is', 'when is', 'where is', 'how to']):
             return True
         
         # Check for topics that require current information
@@ -72,7 +72,7 @@ class LLMService:
         
         # Remove common search phrases to get the actual query
         search_phrases = [
-            'search for', 'find information about', 'look up', 
+            'search for', 'search google for', 'search google', 'find information about', 'look up', 
             'what is', 'who is', 'when is', 'where is', 'how to',
             'tell me about', 'information on', 'details about'
         ]
@@ -225,7 +225,7 @@ Please provide a specific, helpful answer to the user's current question. Keep y
             else:
                 raise
 
-    async def generate_streaming_response(self, user_message: str, chat_history: List[Dict]) -> AsyncGenerator[str, None]:
+    async def generate_streaming_response(self, user_message: str, chat_history: List[Dict], web_search_results: str = None) -> AsyncGenerator[str, None]:
         """Generate a streaming response from the LLM"""
         try:
             # Check if news information is requested
@@ -246,7 +246,23 @@ Please provide a specific, helpful answer to the user's current question. Keep y
 
             history_context = self.format_chat_history_for_llm(chat_history)
             
-            llm_prompt = f"""You are {self.persona}. Please respond directly to the user's current question.
+            # Build the prompt with web search results if provided
+            if web_search_results:
+                llm_prompt = f"""You are {self.persona}. Please respond directly to the user's current question using the provided web search results.
+
+IMPORTANT: Always answer the CURRENT user question directly. Do not give generic responses about your capabilities unless specifically asked "what can you do".
+
+WEB SEARCH RESULTS:
+{web_search_results}
+
+User's current question: "{user_message}"
+
+{history_context}
+
+Please provide a specific, helpful answer to the user's current question based on the web search results.
+Summarize the key information and cite relevant sources if appropriate. Keep your response under 3000 characters."""
+            else:
+                llm_prompt = f"""You are {self.persona}. Please respond directly to the user's current question.
 
 IMPORTANT: Always answer the CURRENT user question directly. Do not give generic responses about your capabilities unless specifically asked "what can you do".
 

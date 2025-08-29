@@ -1,36 +1,61 @@
 import logging
 from typing import List, Dict, Optional
-import requests
+import os
 import asyncio
-import aiohttp
-import json
 from datetime import datetime, timedelta
+from tavily import TavilyClient
 
 logger = logging.getLogger(__name__)
 
 
 class WebSearchService:
-    """Service for performing web searches and retrieving information"""
+    """Service for performing web searches using Tavily API"""
     
     def __init__(self, max_results: int = 5, timeout: int = 10):
         self.max_results = max_results
         self.timeout = timeout
         self.search_cache = {}
         self.cache_duration = timedelta(minutes=5)
+        self.tavily_client = None
+        self._initialize_tavily_client()
         logger.info("🔍 Web Search Service initialized")
     
-    async def search_web(self, query: str, use_cache: bool = True) -> List[Dict]:
+    def _initialize_tavily_client(self):
+        """Initialize Tavily client with API key from environment"""
+        api_key = os.getenv("TAVILY_API_KEY")
+        if api_key and api_key != "your_tavily_api_key_here":
+            try:
+                self.tavily_client = TavilyClient(api_key=api_key)
+                logger.info("✅ Tavily API client initialized successfully")
+            except Exception as e:
+                logger.error(f"Failed to initialize Tavily client: {str(e)}")
+                self.tavily_client = None
+        else:
+            logger.warning("⚠️ TAVILY_API_KEY not found in environment variables")
+            self.tavily_client = None
+    
+    def is_configured(self) -> bool:
+        """Check if Tavily API is properly configured"""
+        return self.tavily_client is not None
+    
+    async def search_web(self, query: str, use_cache: bool = True, max_results: int = None) -> List[Dict]:
         """
-        Perform a web search and return formatted results
+        Perform a web search using Tavily API and return formatted results
         
         Args:
             query: Search query string
             use_cache: Whether to use cached results if available
+            max_results: Maximum number of results to return (overrides instance default)
             
         Returns:
             List of search results with title, url, and snippet
         """
         try:
+            # Check if Tavily is configured
+            if not self.is_configured():
+                logger.error("Tavily API is not configured. Please set TAVILY_API_KEY environment variable.")
+                return []
+            
             # Check cache first
             cache_key = query.lower().strip()
             if use_cache and cache_key in self.search_cache:
@@ -44,54 +69,30 @@ class WebSearchService:
             
             logger.info(f"Searching web for: {query}")
             
-            # Try DuckDuckGo search first
+            # Use Tavily API for search
             results = []
             try:
-                # Try to import ddgs (new package name)
-                try:
-                    from ddgs import DDGS
-                    # Use sync version since async might not be available
-                    with DDGS() as ddgs:
-                        search_results = []
-                        for result in ddgs.text(query, max_results=self.max_results):
-                            search_results.append(result)
-                        
-                        for result in search_results:
-                            formatted_result = {
-                                'title': result.get('title', 'No title'),
-                                'url': result.get('href', ''),
-                                'snippet': result.get('body', 'No description available'),
-                                'source': 'DuckDuckGo'
-                            }
-                            results.append(formatted_result)
-                            
-                except ImportError:
-                    # Fallback to old package name
-                    from duckduckgo_search import DDGS
-                    with DDGS() as ddgs:
-                        search_results = []
-                        for result in ddgs.text(query, max_results=self.max_results):
-                            search_results.append(result)
-                        
-                        for result in search_results:
-                            formatted_result = {
-                                'title': result.get('title', 'No title'),
-                                'url': result.get('href', ''),
-                                'snippet': result.get('body', 'No description available'),
-                                'source': 'DuckDuckGo'
-                            }
-                            results.append(formatted_result)
-                            
-            except Exception as ddgs_error:
-                logger.warning(f"DuckDuckGo search failed: {ddgs_error}. Falling back to alternative method.")
-                # Fallback: try a simple requests-based approach
-                try:
-                    fallback_results = await self._fallback_search(query)
-                    results.extend(fallback_results)
-                except Exception as fallback_error:
-                    logger.error(f"Fallback search also failed: {fallback_error}")
-                    # Return empty results instead of raising exception to avoid breaking the flow
-                    return []
+                # Perform search using Tavily
+                search_response = self.tavily_client.search(
+                    query=query,
+                    max_results=max_results or self.max_results,
+                    search_depth="basic"
+                )
+                
+                # Process results
+                for result in search_response.get("results", []):
+                    formatted_result = {
+                        'title': result.get("title", "No title"),
+                        'url': result.get("url", ""),
+                        'snippet': result.get("content", "No description available"),
+                        'source': 'Tavily'
+                    }
+                    results.append(formatted_result)
+                
+            except Exception as tavily_error:
+                logger.error(f"Tavily search failed: {tavily_error}")
+                # Return empty results instead of raising exception to avoid breaking the flow
+                return []
             
             # Cache the results
             if results and use_cache:
@@ -105,23 +106,6 @@ class WebSearchService:
         except Exception as e:
             logger.error(f"Web search error for query '{query}': {str(e)}")
             # Return empty results instead of raising exception
-            return []
-    
-    async def _fallback_search(self, query: str) -> List[Dict]:
-        """Fallback search method using requests"""
-        try:
-            # Simple fallback using a different approach if DuckDuckGo fails
-            # This is a placeholder - in production, you might use a different API
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            }
-            
-            # You could integrate with another search API here if needed
-            # For now, return empty results to avoid breaking the flow
-            return []
-            
-        except Exception as e:
-            logger.error(f"Fallback search error: {e}")
             return []
     
     def format_search_results(self, results: List[Dict], query: str) -> str:
