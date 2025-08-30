@@ -3,7 +3,7 @@
 A comprehensive voice agent built using FastAPI, Murf AI, Google Gemini, and AssemblyAI. This project demonstrates the evolution from basic text-to-speech to a full conversational AI assistant with persistent memory.
 
 ## 🚀 Live Demo
-[Try TalkEasy Live](https://your-deployed-link-here.com) - *Replace with your actual deployed link*
+[Try TalkEasy Live](https://voice-agent-girdhar.onrender.com/) 
 
 ## 🌟 Features
 
