@@ -690,3 +690,13 @@ Here’s what I accomplished:
 ✅ Shared the deployed link for others to try 🎉
 
 💡 The result? My agent is no longer just running locally — it’s now live on the cloud and can be accessed from anywhere. A huge step toward making it usable for real-world scenarios!
+
+📝 Day 29 of 30 - Murf AI Voice Agent Challenge | Final Documentation 📚⚡
+
+Almost there — just 1 day to go! 🚀
+
+Today’s milestone was all about documenting the journey. I updated my README.md to cover all the features my agent now has — from speech-to-text, chat history, and streaming responses, all the way to Murf-powered audio streaming and special skills like fetching the latest news.
+
+I also wrote a blog post that goes deeper into the 30-day build journey, my learnings, and how everything comes together into a complete conversational AI voice agent.
+
+💡 This project taught me how to combine FastAPI, AssemblyAI, Gemini, Murf, WebSockets, and cloud deployment into a smooth real-time system. Truly feels like building the future of voice tech.

@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>30 Days of Voice Agents | AI Voice Assistant</title>
+  <title>TalkEasy | AI Voice Assistant</title>
   <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="/static/style.css" />
   <!-- Marked.js for Markdown parsing -->
@@ -20,8 +20,12 @@
 
 <body>
   <div class="sidebar">
+    <div class="sidebar-logo ">
+      <img src="/static/logo.png" alt="Talk Easy">
+    </div>
+
     <div class="sidebar-buttons">
-      <button class="btn-toggle" onclick="window.location.href='http://127.0.0.1:8000/'">
+      <button class="btn-toggle" onclick="window.location.href='/'">
         <i class="fas fa-plus"></i>
         <span>
           New Chat
@@ -60,9 +64,16 @@
         <i class="fas fa-earth"></i>
       </button>
     </div>
+
+    <!-- Murf Branding -->
+    <div class="murf-branding">
+
+      <a href="https://murf.ai/api/docs/introduction/overview" target="_blank"><img
+          src="https://cdn.prod.website-files.com/66b3765153a8a0c399c70981/67065c15ad03044508747008_favicon-32x32.png"
+          alt="MURF.AI"></a>
+    </div>
   </div>
   <!-- Conversation History Popup (hidden by default) -->
-  <div id="conversationHistoryPopup" class="conversation-history-popup">
     <div class="conversation-popup-header">
       <h3>Conversation History </h3>
       <div class="conversation-popup-buttons">
@@ -150,7 +161,7 @@
         <small id="streamingSessionId" class="streaming-session"></small>
       </div>
       <div class="header-content">
-        <h1>AI Voice Assistant</h1>
+        <h1>TalkEasy - AI Voice Assistant</h1>
       </div>
       <div>
 
@@ -185,9 +196,9 @@
   <script>
     // Set session ID globally for JavaScript
     window.SESSION_ID = "{{ session_id }}";
-   
+
   </script>
   <script src="/static/app.js"></script>
-</body>
 
-</html>
+
+</body>

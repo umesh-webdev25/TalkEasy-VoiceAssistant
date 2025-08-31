@@ -26,7 +26,6 @@ from services.tts_service import TTSService
 from services.database_service import DatabaseService
 from services.assemblyai_streaming_service import AssemblyAIStreamingService
 from services.murf_websocket_service import MurfWebSocketService
-from services.custom_web_search_service import custom_web_search_service as web_search_service
 from services.skills_manager import skills_manager
 from utils.logging_config import setup_logging, get_logger
 from utils.constants import get_fallback_message
