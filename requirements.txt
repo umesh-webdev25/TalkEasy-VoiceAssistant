@@ -14,3 +14,4 @@ ddgs==9.5.4
 aiohttp==3.9.1
 feedparser==6.0.10
 --prefer-binary
+

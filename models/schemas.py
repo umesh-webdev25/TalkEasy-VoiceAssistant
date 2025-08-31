@@ -75,6 +75,21 @@ class UserSessionsResponse(BaseModel):
     total_sessions: int = Field(..., description="Total number of sessions")
 
 
+class WebSearchResult(BaseModel):
+    """Model for individual web search result"""
+    title: str = Field(..., description="Title of the search result")
+    snippet: str = Field(..., description="Snippet/description of the search result")
+    url: str = Field(..., description="URL of the search result")
+
+
+class WebSearchResponse(BaseModel):
+    """Model for web search API response"""
+    success: bool = Field(..., description="Whether the search was successful")
+    query: str = Field(..., description="The search query that was performed")
+    results: List[WebSearchResult] = Field(default_factory=list, description="List of search results")
+    error_message: Optional[str] = Field(None, description="Error message if search failed")
+
+
 class APIKeyConfig(BaseModel):
     personas: List[str] = Field(default_factory=lambda: ["default", "pirate", "developer"], description="List of available personas")
     selected_persona: Optional[str] = None
