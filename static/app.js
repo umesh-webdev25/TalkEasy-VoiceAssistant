@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Conversation history elements
-  const toggleConversationBtn = document.getElementById("toggleCnversation");
+  const toggleConversationBtn = document.getElementById("toggleConversation");
   const conversationHistoryPopup = document.getElementById("conversationHistoryPopup");
   const closeConversationPopup = document.getElementById("closeConversationPopup");
   const refreshConversationsBtn = document.getElementById("refreshConversations");
@@ -71,11 +71,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Function to toggle conversation history popup
   function toggleConversationHistory() {
-    if (conversationHistoryPopup.style.display === "none" || conversationHistoryPopup.style.display === "") {
-      loadConversationHistory();
-      conversationHistoryPopup.style.display = "block";
+    if (conversationHistoryPopup) {
+      if (conversationHistoryPopup.style.display === "none" || conversationHistoryPopup.style.display === "") {
+        loadConversationHistory();
+        conversationHistoryPopup.style.display = "block";
+      } else {
+        conversationHistoryPopup.style.display = "none";
+      }
     } else {
-      conversationHistoryPopup.style.display = "none";
+      console.error("Conversation history popup element not found");
     }
   }
 

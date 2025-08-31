@@ -700,3 +700,25 @@ Today’s milestone was all about documenting the journey. I updated my README.m
 I also wrote a blog post that goes deeper into the 30-day build journey, my learnings, and how everything comes together into a complete conversational AI voice agent.
 
 💡 This project taught me how to combine FastAPI, AssemblyAI, Gemini, Murf, WebSockets, and cloud deployment into a smooth real-time system. Truly feels like building the future of voice tech.
+
+🚀 30 Days of AI Voice Agents Challenge – Final Submission 🚀
+
+Over the past month, I’ve been part of the 30 Days of AI Voice Agents Challenge—a journey that pushed me to explore, build, debug, and finally deploy something I’m really proud of: TalkEasy 🎙️
+
+👉 TalkEasy is an AI-powered voice agent that can talk, listen, and even perform tasks—designed to feel as natural as possible.
+
+Throughout this challenge, I ran into:
+🔧 Hard bugs (like handling real-time voice streaming + UI updates),
+💡 “aha!” breakthroughs (optimizing smooth user-agent interaction),
+🔥 And lots of late-night debugging sessions.
+
+But the result is worth it—an agent I can keep improving and even extend into real-world use cases.
+
+🔗 GitHub Repo with full documentation: [Your GitHub Link]
+🌐 Live Demo of TalkEasy: [Your Live Project Link]
+
+This challenge not only sharpened my AI + full-stack skills but also taught me the importance of building practical, deployable AI tools.
+
+And yes, you’ll spot a little “Powered by Murf” branding in the UI ✨ (big thanks to @Murf for the amazing APIs).
+
+The journey may be ending, but the applications of what I’ve learned are just getting started. 🚀
