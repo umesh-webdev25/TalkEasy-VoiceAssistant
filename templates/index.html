@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>30 Days of Voice Agents | AI Voice Assistant</title>
+  <title>TalkEasy | AI Voice Assistant</title>
+  <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="/static/style.css" />
   <!-- Marked.js for Markdown parsing -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -14,15 +15,19 @@
   <!-- link for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+
 </head>
 
 <body>
   <div class="sidebar">
+    <div class="sidebar-logo ">
+      <img src="/static/logo.png" alt="Talk Easy">
+    </div>
+
     <div class="sidebar-buttons">
       <button class="btn-toggle" onclick="window.location.href='http://127.0.0.1:8000/'">
         <i class="fas fa-plus"></i>
         <span>
-
           New Chat
         </span>
       </button>
@@ -54,6 +59,18 @@
       <button id="toggleConfig" class="btn-toggle">
         <i class="fas fa-cog"></i> <span> Config</span>
       </button>
+      <button class="web-search-toggle btn-toggle" id="webSearchBtn">
+        <input type="checkbox" id="webSearchCheckbox">
+        <i class="fas fa-earth"></i>
+      </button>
+    </div>
+
+    <!-- Murf Branding -->
+    <div class="murf-branding">
+
+      <a href="https://murf.ai/api/docs/introduction/overview" target="_blank"><img
+          src="https://cdn.prod.website-files.com/66b3765153a8a0c399c70981/67065c15ad03044508747008_favicon-32x32.png"
+          alt="MURF.AI"></a>
     </div>
   </div>
   <!-- Conversation History Popup (hidden by default) -->
@@ -145,7 +162,7 @@
         <small id="streamingSessionId" class="streaming-session"></small>
       </div>
       <div class="header-content">
-        <h1>AI Voice Assistant</h1>
+        <h1>TalkEasy - AI Voice Assistant</h1>
       </div>
       <div>
 
@@ -160,7 +177,6 @@
     </header>
 
     <div class="card">
-
       <!-- Chat history -->
       <div id="chatHistoryContainer" class="chat-history-container">
         <div id="chatHistoryList" class="chat-history-list">
@@ -168,16 +184,12 @@
         </div>
       </div>
 
-
-
-
-
       <!-- Controls -->
       <div class="controls">
         <button id="audioStreamBtn" class="btn primary" data-state="ready">
-          <span class="btn-icon">🎤</span>
-          <span class="btn-text">Start Conversation</span>
+          <span class="btn-icon"><i class="fa fa-microphone"></i></span>
         </button>
+
       </div>
     </div>
   </div>
@@ -185,8 +197,11 @@
   <script>
     // Set session ID globally for JavaScript
     window.SESSION_ID = "{{ session_id }}";
+
   </script>
   <script src="/static/app.js"></script>
+
+
 </body>
 
 </html>

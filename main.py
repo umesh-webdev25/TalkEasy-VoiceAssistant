@@ -35,7 +35,7 @@ logger = get_logger(__name__)
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="30 Days of Voice Agents - AI Voice Assistant",
+    title="TalkEasy - AI Voice Assistant",
     version="1.0.0"
 )
 
@@ -618,87 +618,84 @@ async def audio_stream_websocket(websocket: WebSocket):
         }
         await manager.send_personal_message(json.dumps(welcome_message), websocket)
         
-        with open(audio_filepath, "wb") as audio_file:
-            chunk_count = 0
-            total_bytes = 0
-            
-            while True:
-                try:
-                    message = await websocket.receive()
-                    
-                    if "text" in message:
-                        text_data = message["text"]
-                        
-                        # Try to parse as JSON first (for session_id message)
-                        try:
-                            command_data = json.loads(text_data)
-                            if isinstance(command_data, dict) and command_data.get("type") == "session_id":
-                                # Update session_id if provided from frontend
-                                new_session_id = command_data.get("session_id")
-                                if new_session_id and new_session_id != session_id:
-                                    logger.info(f"Updating session_id from {session_id} to {new_session_id}")
-                                    session_id = new_session_id
-                                    # Update audio filename with new session ID
-                                    audio_filename = f"streamed_audio_{session_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
-                                    audio_filepath = os.path.join("streamed_audio", audio_filename)
-                                continue
-                        except json.JSONDecodeError:
-                            # Not JSON, treat as regular command
-                            pass
-                        
-                        command = text_data
-                        
-                        if command == "start_streaming":
-                            response = {
-                                "type": "command_response",
-                                "message": "Ready to receive audio chunks with real-time transcription",
-                                "status": "streaming_ready"
-                            }
-                            await manager.send_personal_message(json.dumps(response), websocket)
-                            
-                        elif command == "stop_streaming":
-                            response = {
-                                "type": "command_response",
-                                "message": "Stopping audio stream",
-                                "status": "streaming_stopped"
-                            }
-                            await manager.send_personal_message(json.dumps(response), websocket)
-                            
-                            if assemblyai_streaming_service:
-                                async def safe_stop_callback(msg):
-                                    if manager.is_connected(websocket):
-                                        return await manager.send_personal_message(json.dumps(msg), websocket)
-                                    return None
-                            break
-                    
-                    elif "bytes" in message:
-                        audio_chunk = message["bytes"]
-                        chunk_count += 1
-                        total_bytes += len(audio_chunk)
-                        
-                        # Write to file
-                        audio_file.write(audio_chunk)
-                        
-                        # Send to AssemblyAI for transcription if available
-                        if assemblyai_streaming_service and is_websocket_active:
-                            await assemblyai_streaming_service.send_audio_chunk(audio_chunk)
-                        
-                        # Send chunk confirmation to client
-                        if chunk_count % 10 == 0:  # Send every 10th chunk to avoid spam
-                            chunk_response = {
-                                "type": "audio_chunk_received",
-                                "chunk_number": chunk_count,
-                                "total_bytes": total_bytes,
-                                "timestamp": datetime.now().isoformat()
-                            }
-                            await manager.send_personal_message(json.dumps(chunk_response), websocket)
-                
-                except WebSocketDisconnect:
-                    break
-                except Exception as e:
-                    logger.error(f"Error processing audio chunk: {e}")
-                    break
+        chunk_count = 0
+        total_bytes = 0
         
+        while True:
+            try:
+                message = await websocket.receive()
+                
+                if "text" in message:
+                    text_data = message["text"]
+                    
+                    # Try to parse as JSON first (for session_id message)
+                    try:
+                        command_data = json.loads(text_data)
+                        if isinstance(command_data, dict) and command_data.get("type") == "session_id":
+                            # Update session_id if provided from frontend
+                            new_session_id = command_data.get("session_id")
+                            if new_session_id and new_session_id != session_id:
+                                logger.info(f"Updating session_id from {session_id} to {new_session_id}")
+                                session_id = new_session_id
+                                # Update audio filename with new session ID
+                                audio_filename = f"streamed_audio_{session_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
+                                audio_filepath = os.path.join("streamed_audio", audio_filename)
+                            continue
+                    except json.JSONDecodeError:
+                        # Not JSON, treat as regular command
+                        pass
+                    
+                    command = text_data
+                    
+                    if command == "start_streaming":
+                        response = {
+                            "type": "command_response",
+                            "message": "Ready to receive audio chunks with real-time transcription",
+                            "status": "streaming_ready"
+                        }
+                        await manager.send_personal_message(json.dumps(response), websocket)
+                        
+                    elif command == "stop_streaming":
+                        response = {
+                            "type": "command_response",
+                            "message": "Stopping audio stream",
+                            "status": "streaming_stopped"
+                        }
+                        await manager.send_personal_message(json.dumps(response), websocket)
+                        
+                        if assemblyai_streaming_service:
+                            async def safe_stop_callback(msg):
+                                if manager.is_connected(websocket):
+                                    return await manager.send_personal_message(json.dumps(msg), websocket)
+                                return None
+                        break
+                
+                elif "bytes" in message:
+                    audio_chunk = message["bytes"]
+                    chunk_count += 1
+                    total_bytes += len(audio_chunk)
+                    
+                    # Send to AssemblyAI for transcription if available
+                    if assemblyai_streaming_service and is_websocket_active:
+                        await assemblyai_streaming_service.send_audio_chunk(audio_chunk)
+                    
+                    # Send chunk confirmation to client
+                    if chunk_count % 10 == 0:  # Send every 10th chunk to avoid spam
+                        chunk_response = {
+                            "type": "audio_chunk_received",
+                            "chunk_number": chunk_count,
+                            "total_bytes": total_bytes,
+                            "timestamp": datetime.now().isoformat()
+                        }
+                        await manager.send_personal_message(json.dumps(chunk_response), websocket)
+
+            except WebSocketDisconnect:
+                break
+            except Exception as e:
+                logger.error(f"Error processing audio chunk: {e}")
+                break
+
+        # Send final response before closing
         final_response = {
             "type": "audio_stream_complete",
             "message": f"Audio stream completed. Total chunks: {chunk_count}, Total bytes: {total_bytes}",
@@ -709,7 +706,7 @@ async def audio_stream_websocket(websocket: WebSocket):
             "timestamp": datetime.now().isoformat()
         }
         await manager.send_personal_message(json.dumps(final_response), websocket)
-        
+
     except WebSocketDisconnect:
         is_websocket_active = False
         manager.disconnect(websocket)

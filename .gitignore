@@ -5,3 +5,5 @@ venv
 .env.example
 voice_agent.log
 .vercel
+media
+/media

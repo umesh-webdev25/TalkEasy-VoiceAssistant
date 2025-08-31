@@ -1,4 +1,4 @@
-Have to check the functilolity of 
+# TODO for Adding Murf Branding
 
-2. Skills (web search and news)
-3. response in buffer with audio sync 
+- [x] Add branding div to templates/index.html
+- [x] Add CSS styles for branding in static/style.css
