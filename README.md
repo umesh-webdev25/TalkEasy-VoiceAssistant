@@ -240,7 +240,7 @@ MIT License - see LICENSE file for details.
 
 - 📧 Email: talkeasyofficial100@gmail.com
 - 📞 Phone: +91 7470480121
-- 🌐 Website: [https://talkeasy.vercel.app](talkeasy-three.vercel.app)
+- 🌐 Website: [https://talkeasy.vercel.app](https://talkeasy-three.vercel.app/?session_id=session_nkh0hheuv_1761750089394)
   
 ---
 
