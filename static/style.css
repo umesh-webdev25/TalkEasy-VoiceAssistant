@@ -1,3 +1,13 @@
+   :root{
+     --bg:#0b1220;
+     --card-gradient-start: rgba(255,255,255,0.02);
+     --card-gradient-end: rgba(255,255,255,0.01);
+     --muted:#94a3b8;
+     --accent:#7c3aed;
+     --accent-600:#6d28d9;
+     --white:#ffffff;
+   }
+
    * {
       margin: 0;
       padding: 0;
@@ -7,13 +17,13 @@
     body {
       padding: 10px;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #1b63ff54 0%, #663174 100%);
+      background: linear-gradient(180deg,var(--bg) 0%, #071026 100%);
       min-height: 100vh;
       display: flex;
       gap:10px;
       align-items: center;
       justify-content: center;
-      color: #333;
+      color: #cbd5e1;
     }
     
 .sidebar{
@@ -51,14 +61,14 @@
     }
     
     /* Header Styles */
-    header {
+  header {
       text-align: center;
       margin-bottom: 10px;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: linear-gradient(180deg, var(--card-gradient-start), var(--card-gradient-end));
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.04);
       border-radius: 20px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
       padding: 8px;
       display:flex;
       justify-content:space-between;
@@ -68,30 +78,33 @@
     header .persona-selector, header select option{
       color: white;
       padding: 8px 14px;
-      background: #85649d;
+      background: #0b1220;
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius:20px;
       font-size: 0.9rem;
       font-weight: 500;
       cursor: pointer;
       transition: all 0.3s ease;
+      margin-right: 30px;
+      margin-top: 5px;
     }
     
     header h1 {
       color: white;
       font-weight: 700;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-left: 200px;
     }
    
 
-    .card {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
+  .card {
+     background: linear-gradient(180deg, var(--card-gradient-start), var(--card-gradient-end));
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.04);
       border-radius: 20px;
       padding: 10px;
       height: 85vh;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
       text-align: center;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
       display: flex;
@@ -125,6 +138,7 @@
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      margin-left: 20px;
     }
     
     .status-badge.disconnected {
@@ -176,12 +190,121 @@
       font-weight: 500;
       cursor: pointer;
       transition: all 0.3s ease;
+      text-decoration: none;
     }
     
     .btn-toggle:hover {
       background: rgba(103, 126, 234, 0.3);
       transform: translateY(-1px);
     }
+
+    /* Shared nav button used in header */
+    .nav-btn{
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 8px 12px;
+      border-radius: 8px;
+      color: var(--white);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Auth dropdown menu (profile/logout) */
+  .auth-dropdown {
+    position: relative;
+    display: inline-flex; /* ensure positioning is relative to the button and alignment is consistent */
+    align-items: center;
+    overflow: visible;
+  }
+
+  /* Dropdown menu that appears below the account button */
+  .auth-menu {
+    position: absolute;
+    left: 50%; /* center under the parent */
+    right: auto;
+    top: calc(100% + 8px); /* slightly tighter spacing */
+    background: linear-gradient(180deg, var(--card-gradient-start), var(--card-gradient-end));
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 6px;
+    border-radius: 10px;
+    min-width: 180px;
+    box-shadow: 0 12px 40px rgba(2, 6, 23, 0.7);
+    z-index: 100000;
+    transform-origin: top center;
+    transform: translateX(-50%); /* center the menu horizontally under the account button */
+    box-sizing: border-box;
+  }
+
+  /* Auth menu items use a consistent flex layout so icons and text align */
+  .auth-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    color: var(--white);
+    text-decoration: none;
+    border-radius: 8px;
+    background: transparent;
+    text-align: left;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    box-sizing: border-box;
+    font-weight: 600;
+  }
+
+  .auth-menu-item:hover {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  /* Make logout visually distinct and full-width */
+  .logout-button {
+    width: 100%;
+    text-align: left;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #fff;
+    border: none;
+    box-shadow: 0 6px 18px rgba(220, 38, 38, 0.18);
+    transition: transform 0.12s ease, filter 0.12s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logout-button:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.03);
+  }
+
+  .logout-inline {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: var(--white);
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  /* Visible inline logout that appears next to the account pill */
+  .logout-inline-visible{
+    margin-left: 8px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--white);
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logout-inline-visible:hover{ background: rgba(255,255,255,0.02); transform: translateY(-1px); }
     
     /* Chat history container */
     .chat-history-container {
@@ -213,10 +336,10 @@
     }
     
     .chat-message {
-      background: rgba(248, 250, 252, 0.8);
+      background: rgba(255,255,255,0.02);
       transition: all 0.2s ease;
       position: relative;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
       animation: fadeIn 0.3s ease-out;
       border-radius: 8px;
       padding: 8px;
@@ -224,23 +347,23 @@
       width: fit-content;
       transition: all 0.2s ease;
       max-width: 400px;
-      color: gray;
+      color: #cbd5e1;
       margin-bottom:10px;
     }
     
     .chat-message.user {
       align-self: flex-end;
-      color: gray;
+      color: #cbd5e1;
       border-bottom-right-radius: 4px;
       border-right: 4px solid #667eea;
-      background: rgba(103, 126, 234, 0.05);
+      background: rgba(103, 126, 234, 0.06);
     }
     
     .chat-message.assistant {
       align-self: flex-start;
-      color: gray;
+      color: #cbd5e1;
       border-bottom-left-radius: 4px;
-      background: rgba(72, 187, 120, 0.05);
+      background: rgba(72, 187, 120, 0.06);
       border-left: 4px solid #48bb78;
     }
     
@@ -267,7 +390,7 @@
       font-size: 14px;
       word-wrap: break-word;
       margin: 0;
-      color:gray;
+      color:white;
       padding: 0;
       text-align: start;
     }
@@ -275,7 +398,7 @@
       font-size: 14px;
       word-wrap: break-word;
       margin: 0;
-      color:gray;
+      color: white;
       padding: 0;
       text-align: start;
     }
@@ -345,16 +468,16 @@
     }
     
     /* Streaming logs container */
-    .streaming-status-container {
-      background: white;
+  .streaming-status-container {
+  background: linear-gradient(180deg, var(--card-gradient-start), var(--card-gradient-end));
       padding: 10px;
-      border: 1px solid #dee2e6;
+      border: 1px solid rgba(255,255,255,0.04);
       border-radius: 8px;
       max-height:90vh;
       width: 500px;
       overflow-y: auto;
       z-index: 10;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
       display: none;
     }
     
@@ -411,11 +534,11 @@
     }
 
     /* Conversation History Popup */
-    .conversation-history-popup {
-      background: white;
-      border: 1px solid #dee2e6;
+  .conversation-history-popup {
+  background: linear-gradient(180deg, var(--card-gradient-start), var(--card-gradient-end));
+      border: 1px solid rgba(255,255,255,0.04);
       border-radius: 20px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
       width: 550px;
       max-height: 100%;
       overflow-y: auto;
@@ -436,7 +559,7 @@
 
 }
     .btn-close-popup {
-      background: transparent;
+      background: white;
       border: none;
       font-size: 1.5rem;
       cursor: pointer;
@@ -478,14 +601,14 @@
       display: none;
     }
 
-    .config-modal-content {
-      background: white;
+  .config-modal-content {
+  background: linear-gradient(180deg, var(--card-gradient-start), var(--card-gradient-end));
       border-radius: 20px;
       padding: 10px;
       width: 400px;
       max-height: 100%  ;
       overflow-y: auto;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
     }
 
     .config-modal-header {
@@ -512,7 +635,8 @@
       margin-bottom: 5px;
       font-weight: 600;
       font-size: 14px;
-      color: #4a5568;
+      color: white;
+      border: 2px solid transparent;
     }
 
     .form-input {
@@ -632,6 +756,9 @@
       align-items: center;
       gap: 8px;
       justify-content: center;
+     text-decoration: none;
+     height: 40px;
+     margin-right: 20px;
     }
     
     .btn-icon {
@@ -717,4 +844,8 @@
 
 ::-webkit-scrollbar{
   display: none;
+}
+
+.header-controls, .user-menu{
+  display:flex;
 }

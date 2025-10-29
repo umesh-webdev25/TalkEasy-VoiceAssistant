@@ -1,4 +1,71 @@
 document.addEventListener("DOMContentLoaded", function () {
+  // Global error suppression for browser extensions and unwanted logs
+  (function() {
+    const extensionPatterns = [
+      /message port closed/i,
+      /load_embeds/i,
+      /embed_script/i,
+      /chrome-extension/i,
+      /extension.*inject/i,
+      /moz-extension/i,
+      /webkit.*extension/i,
+      /ScriptProcessorNode is deprecated/i
+    ];
+    
+    const isExtensionRelated = (message) => {
+      if (typeof message !== 'string') return false;
+      return extensionPatterns.some(pattern => pattern.test(message));
+    };
+    
+    // Store original console methods
+    const originalConsole = {
+      error: console.error.bind(console),
+      log: console.log.bind(console),
+      warn: console.warn.bind(console)
+    };
+    
+    // Override console.error
+    console.error = function(...args) {
+      const message = String(args[0] || '');
+      if (!isExtensionRelated(message)) {
+        originalConsole.error(...args);
+      }
+    };
+    
+    // Override console.log (only filter obvious extension logs)
+    console.log = function(...args) {
+      if (args.length === 1 && typeof args[0] === 'object' && 
+          args[0] !== null && !args[0].hasOwnProperty('message') &&
+          !args[0].hasOwnProperty('type') && !args[0].hasOwnProperty('data')) {
+        // Likely extension object logs - suppress
+        return;
+      }
+      const message = String(args[0] || '');
+      if (!isExtensionRelated(message)) {
+        originalConsole.log(...args);
+      }
+    };
+    
+    // Override console.warn
+    console.warn = function(...args) {
+      const message = String(args[0] || '');
+      if (!isExtensionRelated(message)) {
+        originalConsole.warn(...args);
+      }
+    };
+    
+    // Also suppress window errors from extensions
+    window.addEventListener('error', function(e) {
+      if (e.filename && (e.filename.includes('extension') || 
+          e.filename.includes('embed') || 
+          e.filename.includes('inject'))) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+    }, true);
+  })();
+
   // Global variables
   let sessionId = getSessionIdFromUrl() || generateSessionId();
   let webSearchEnabled = false;
@@ -91,7 +158,13 @@ document.addEventListener("DOMContentLoaded", function () {
   // Function to load conversation history
   async function loadConversationHistory() {
     try {
-      const response = await fetch(`/agent/chat/all`);
+      const _token = localStorage.getItem('access_token');
+      if (!_token) {
+        conversationList.innerHTML = '<p class="no-history">Conversation history is available only when you are logged in.</p>';
+        return;
+      }
+      const _headers = { 'Authorization': 'Bearer ' + _token };
+      const response = await fetch(`/agent/chat/all`, { headers: _headers });
       const data = await response.json();
       if (data.success && data.chat_histories.length > 0) {
         displayConversationList(data.chat_histories);
@@ -159,6 +232,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const data = await response.json();
         if (data.success) {
           alert("All conversation history cleared.");
+          try{ console.debug('[app.js] toggleClearHistoryfunction: calling window.location.reload()', new Error().stack); }catch(e){}
           window.location.reload();
         } else {
           alert("Failed to clear conversation history.");
@@ -307,8 +381,36 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   async function initializeSession() {
+    // For anonymous users clear any temporary session data so temporary history is removed on page reload
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        // remove temp session id and any cached session chats so reload resets the conversation
+        try { const storedTemp = sessionStorage.getItem('temp_session_id'); if (storedTemp) { sessionStorage.removeItem(`session_chats_${storedTemp}`); sessionStorage.removeItem('temp_session_id'); } } catch(e) {}
+        // also clear any session_chats for current sessionId
+        try { sessionStorage.removeItem(`session_chats_${sessionId}`); } catch(e) {}
+      }
+    } catch (e) {}
+
     updateUrlWithSessionId(sessionId);
     await loadChatHistory();
+    // If user is logged in, auto-load their conversation histories for quick access
+    try {
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        // Populate conversation history list for the logged-in user
+        await loadConversationHistory();
+  // hide local chat note for logged-in users
+  try { const note = document.getElementById('localChatNote'); if (note) note.style.display = 'none'; } catch (e) {}
+      }
+      else {
+        // show local chat note for anonymous users
+        try { const note = document.getElementById('localChatNote'); if (note) { note.style.display = 'inline'; } } catch (e) {}
+  // do not persist temp session id: temporary chat will be cleared on reload
+      }
+    } catch (e) {
+      // ignore errors here
+    }
   }
 
   function initializeStreamingMode() {
@@ -329,14 +431,35 @@ document.addEventListener("DOMContentLoaded", function () {
 
   async function loadChatHistory() {
     try {
-      const response = await fetch(`/agent/chat/${sessionId}/history`);
-      const data = await response.json();
-      if (data.success) {
-        displayChatHistory(data.messages);
+  // If user is logged in (has access_token) let server return history, otherwise load from sessionStorage (temporary)
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        console.log('[loadChatHistory] Fetching history for session:', sessionId);
+        const response = await fetch(`/agent/chat/${sessionId}/history`);
+        const data = await response.json();
+        console.log('[loadChatHistory] Response data:', data);
+        if (data.success) {
+          console.log('[loadChatHistory] Displaying', data.messages?.length || 0, 'messages');
+          displayChatHistory(data.messages);
+        } else {
+          console.log('[loadChatHistory] No success in response or no messages');
+          const chatHistoryList = document.getElementById("chatHistoryList");
+          if (chatHistoryList) {
+            chatHistoryList.innerHTML = '<p class="no-history">No previous messages in this session. <br> Start your Conversation</p>';
+          }
+        }
       } else {
-        const chatHistoryList = document.getElementById("chatHistoryList");
-        if (chatHistoryList) {
-          chatHistoryList.innerHTML = '<p class="no-history">No previous messages in this session. <br> Start your Conversation</p>';
+        // Anonymous user: load from sessionStorage using key per session (temporary, cleared when browser closes)
+        const key = `session_chats_${sessionId}`;
+        const raw = sessionStorage.getItem(key);
+        const messages = raw ? JSON.parse(raw) : [];
+        if (messages && messages.length > 0) {
+          displayChatHistory(messages);
+        } else {
+          const chatHistoryList = document.getElementById("chatHistoryList");
+          if (chatHistoryList) {
+            chatHistoryList.innerHTML = '<p class="no-history">No previous messages in this session. <br> Start your Conversation</p>';
+          }
         }
       }
     } catch (error) {
@@ -435,6 +558,20 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  // Persist a message to sessionStorage for anonymous users (temporary session-only)
+  function persistLocalMessage(sessionId, role, content, timestamp) {
+    try {
+      const key = `session_chats_${sessionId}`;
+      const raw = sessionStorage.getItem(key);
+      const messages = raw ? JSON.parse(raw) : [];
+      messages.push({ role: role, content: content, timestamp: timestamp || Date.now() });
+      sessionStorage.setItem(key, JSON.stringify(messages));
+    } catch (e) {
+      console.error('Failed to persist local message:', e);
+    }
+  }
++
+
   function toggleLogs() {
     if (audioStreamStatus) {
       const isVisible = audioStreamStatus.style.display !== "none";
@@ -454,8 +591,15 @@ document.addEventListener("DOMContentLoaded", function () {
       // Clear any previous transcriptions
       clearPreviousTranscriptions();
 
-      // Connect to WebSocket with session ID
-      audioStreamSocket = new WebSocket(`wss://voice-agent-girdhar.onrender.com/ws/audio-stream?session_id=${sessionId}`);
+  // Connect to WebSocket with session ID
+  const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsHost = window.location.host;
+  // Attach access token to WebSocket query string when available so the backend can verify/attribute messages
+  const _token = localStorage.getItem('access_token');
+  const tokenParam = _token ? `&token=${encodeURIComponent(_token)}` : '';
+  const wsUrl = `${wsProtocol}//${wsHost}/ws/audio-stream?session_id=${sessionId}${tokenParam}`;
+
+  audioStreamSocket = new WebSocket(wsUrl);
 
       audioStreamSocket.onopen = function (event) {
         updateConnectionStatus("connected", "Connected");
@@ -584,6 +728,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (!userMessage) {
       addUserMessageToHistory(text);
+      // persist for anonymous users
+      try { if (!localStorage.getItem('access_token')) persistLocalMessage(sessionId, 'user', text, Date.now()); } catch(e){}
       return;
     }
 
@@ -744,6 +890,8 @@ document.addEventListener("DOMContentLoaded", function () {
     setTimeout(() => {
       aiMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, 100);
+    // Persist assistant response for anonymous users
+    try { if (!localStorage.getItem('access_token')) persistLocalMessage(sessionId, 'assistant', completeResponse, Date.now()); } catch(e){}
   }
 
   // Remove AI response placeholder (in case of error)
@@ -771,21 +919,43 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
       const source = audioContext.createMediaStreamSource(audioStreamStream);
-      const processor = audioContext.createScriptProcessor(4096, 1, 1);
-
-      processor.onaudioprocess = function (e) {
-        if (audioStreamSocket && audioStreamSocket.readyState === WebSocket.OPEN) {
-          const inputData = e.inputBuffer.getChannelData(0);
-          const pcmData = new Int16Array(inputData.length);
-          for (let i = 0; i < inputData.length; i++) {
-            pcmData[i] = Math.max(-32768, Math.min(32767, inputData[i] * 32767));
+      
+      // Use AudioWorkletNode instead of deprecated ScriptProcessorNode
+      let processor;
+      
+      try {
+        // Try to use AudioWorkletNode (modern approach)
+        await audioContext.audioWorklet.addModule('/static/audio-processor.js');
+        processor = new AudioWorkletNode(audioContext, 'audio-processor');
+        
+        processor.port.onmessage = function(e) {
+          if (audioStreamSocket && audioStreamSocket.readyState === WebSocket.OPEN) {
+            const pcmData = e.data;
+            audioStreamSocket.send(pcmData.buffer);
           }
-          audioStreamSocket.send(pcmData.buffer);
-        }
-      };
+        };
+        
+        source.connect(processor);
+        processor.connect(audioContext.destination);
+      } catch (workletError) {
+        // Fallback to ScriptProcessorNode if AudioWorklet is not supported
+        console.warn('AudioWorkletNode not supported, falling back to ScriptProcessorNode');
+        processor = audioContext.createScriptProcessor(4096, 1, 1);
 
-      source.connect(processor);
-      processor.connect(audioContext.destination);
+        processor.onaudioprocess = function (e) {
+          if (audioStreamSocket && audioStreamSocket.readyState === WebSocket.OPEN) {
+            const inputData = e.inputBuffer.getChannelData(0);
+            const pcmData = new Int16Array(inputData.length);
+            for (let i = 0; i < inputData.length; i++) {
+              pcmData[i] = Math.max(-32768, Math.min(32767, inputData[i] * 32767));
+            }
+            audioStreamSocket.send(pcmData.buffer);
+          }
+        };
+
+        source.connect(processor);
+        processor.connect(audioContext.destination);
+      }
 
       // Store references for cleanup
       audioStreamRecorder = {
@@ -1286,4 +1456,104 @@ document.addEventListener("DOMContentLoaded", function () {
       console.error("Error changing persona:", error);
     }
   }
+
+  // Authentication functionality removed
 });
+async function startCaptureAndStream(wsUrl, targetSampleRate = 16000) {
+    // Request microphone with common DSP constraints
+    const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+        }
+    });
+
+    // Try to create AudioContext at target sample rate (may be ignored by browser)
+    const audioContext = new AudioContext({ sampleRate: targetSampleRate });
+    const source = audioContext.createMediaStreamSource(stream);
+
+    // Inline AudioWorklet processor blob (sends Float32 frames to main thread)
+    const workletCode = `
+        class RecorderProcessor extends AudioWorkletProcessor {
+            process(inputs) {
+                const input = inputs[0];
+                if (input && input[0]) {
+                    // post a copy to avoid transfer of AudioBuffer-backed arrays
+                    this.port.postMessage(input[0].slice(0));
+                }
+                return true;
+            }
+        }
+        registerProcessor('recorder-processor', RecorderProcessor);
+    `;
+    const blob = new Blob([workletCode], { type: 'application/javascript' });
+    const url = URL.createObjectURL(blob);
+    await audioContext.audioWorklet.addModule(url);
+
+    const node = new AudioWorkletNode(audioContext, 'recorder-processor');
+    source.connect(node);
+    node.connect(audioContext.destination); // optional monitor; remove to avoid echo
+
+    const ws = new WebSocket(wsUrl);
+    ws.binaryType = 'arraybuffer';
+
+    // simple energy-based VAD params
+    const VAD_THRESHOLD = 0.0009; // tune this
+    const VAD_MIN_FRAMES = 3; // require N consecutive frames over threshold
+    let vadCount = 0;
+    let isSending = false;
+
+    node.port.onmessage = (ev) => {
+        const float32 = ev.data; // Float32Array
+        // compute short-term energy
+        let energy = 0;
+        for (let i = 0; i < float32.length; i++) energy += float32[i] * float32[i];
+        energy = energy / float32.length;
+
+        if (energy > VAD_THRESHOLD) {
+            vadCount++;
+        } else {
+            vadCount = 0;
+        }
+
+        // start sending only after a few voiced frames (reduces false starts)
+        if (vadCount >= VAD_MIN_FRAMES) isSending = true;
+        if (isSending) {
+            // convert Float32 [-1,1] -> Int16 PCM
+            const int16 = floatTo16BitPCM(float32);
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(int16.buffer);
+            }
+        }
+
+        // simple end-of-speech: if several low-energy frames after sending, mark stop
+        if (isSending && energy < VAD_THRESHOLD && vadCount === 0) {
+            // optional: send a small JSON control message signaling end of utterance
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'final_transcript' }));
+            }
+            isSending = false;
+        }
+    };
+
+    ws.onopen = () => console.log('audio WS open');
+    ws.onclose = () => {
+        node.disconnect();
+        source.disconnect();
+        audioContext.close();
+    };
+
+    function floatTo16BitPCM(float32Array) {
+        // If audioContext.sampleRate !== targetSampleRate, consider resampling here or server-side.
+        const l = float32Array.length;
+        const buffer = new ArrayBuffer(l * 2);
+        const view = new DataView(buffer);
+        let offset = 0;
+        for (let i = 0; i < l; i++, offset += 2) {
+            let s = Math.max(-1, Math.min(1, float32Array[i]));
+            view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+        }
+        return new Int16Array(buffer);
+    }
+}

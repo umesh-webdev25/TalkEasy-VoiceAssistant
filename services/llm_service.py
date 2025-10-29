@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class LLMService:    
-    def __init__(self, api_key: str, model_name: str = "gemini-1.5-flash", persona: str = None):
+    def __init__(self, api_key: str, model_name: str = "gemini-2.5-flash", persona: str = None):
         self.api_key = api_key
         self.model_name = model_name
         self.persona = persona or "helpful AI assistant"
@@ -28,6 +28,15 @@ class LLMService:
         
         self.persona = persona_prompts.get(persona, persona_prompts["default"])
         logger.info(f"🤖 Persona switched to: {self.persona}")
+
+    def _detect_language(self, text: str) -> str:
+        """Simple detection: returns 'hi' if Devanagari chars present, otherwise 'en'"""
+        if not text:
+            return "en"
+        for ch in text:
+            if '\u0900' <= ch <= '\u097F':  # Devanagari block
+                return "hi"
+        return "en"
     
     def format_chat_history_for_llm(self, messages: List[Dict]) -> str:
         if not messages:
@@ -125,8 +134,20 @@ class LLMService:
         response += "\nWould you like me to read any of these articles in detail?"
         return response
     
-    async def generate_response(self, user_message: str, chat_history: List[Dict]) -> str:
+    async def generate_response(self, user_message: str, chat_history: List[Dict], language: str = "auto") -> str:
         try:
+            # Resolve language preference
+            lang = language
+            if language == "auto":
+                lang = self._detect_language(user_message)
+
+            if lang == "both":
+                language_instruction = "Provide the answer in BOTH English and Hindi. First provide the English version, then the Hindi translation separated by '---'."
+            elif lang == "hi":
+                language_instruction = "Respond in Hindi only."
+            else:
+                language_instruction = "Respond in English only."
+            
             # Check if web search is needed
             if self._should_perform_web_search(user_message):
                 query = self._extract_search_query(user_message)
@@ -150,6 +171,8 @@ USER'S ORIGINAL QUESTION: "{user_message}"
 
 Please provide a helpful, accurate answer based on the search results.
 Summarize the key information and cite relevant sources if appropriate."""
+                    # append language instruction
+                    enhanced_prompt = f"{language_instruction}\n\n{enhanced_prompt}"
                     
                     llm_response = self.model.generate_content(enhanced_prompt)
                     
@@ -185,7 +208,8 @@ Summarize the key information and cite relevant sources if appropriate."""
             # Normal LLM response for non-search queries
             history_context = self.format_chat_history_for_llm(chat_history)
             
-            llm_prompt = f"""You are {self.persona}. Please respond directly to the user's current question.
+            llm_prompt = f"""{language_instruction}
+You are {self.persona}. Please respond directly to the user's current question.
 
 IMPORTANT: Always answer the CURRENT user question directly. Do not give generic responses about your capabilities unless specifically asked "what can you do".
 
@@ -194,7 +218,6 @@ User's current question: "{user_message}"
 
 
 Please provide a specific, helpful answer to the user's current question. Keep your response under 3000 characters."""
-            
             llm_response = self.model.generate_content(llm_prompt)
             
             if not llm_response.candidates:
@@ -225,56 +248,75 @@ Please provide a specific, helpful answer to the user's current question. Keep y
             else:
                 raise
 
-    async def generate_streaming_response(self, user_message: str, chat_history: List[Dict], web_search_results: str = None) -> AsyncGenerator[str, None]:
+    async def generate_streaming_response(self, user_message: str, chat_history: List[Dict], web_search_results: str = None, language: str = "auto") -> AsyncGenerator[str, None]:
         """Generate a streaming response from the LLM"""
         try:
+            # Resolve language preference for streaming via same auto-detect helper if caller used tagging in message
+            # Note: callers can include language preference by passing a special marker or by changing this method signature if desired.
+            # For backwards compatibility, detection remains simple and based on Devanagari characters.
+            # (If you want to pass explicit language param to streaming, update signature similarly.)
+            # Respect explicit language param; fall back to auto-detect only when language=='auto'
+            lang = language
+            if language == "auto":
+                lang = self._detect_language(user_message)
+
+            if lang == "both":
+                language_instruction = "Provide the answer in BOTH English and Hindi. First provide the English version, then the Hindi translation separated by '---'."
+            elif lang == "hi":
+                language_instruction = "Respond in Hindi only."
+            else:
+                language_instruction = "Respond in English only."
+            
             # Check if news information is requested
             if any(keyword in user_message.lower() for keyword in ['news', 'headlines', 'latest news', 'current events', 'breaking news']):
-                category = self._extract_news_category(user_message)
-                logger.info(f"📰 Fetching news for category: {category}")
-                news_service = skills_manager.get_skill("news")
-                if news_service:
-                    news_data = news_service.get_news_headlines(category)
-                    if "error" not in news_data and "articles" in news_data and news_data["articles"]:
-                        news_response = self._format_news_response(news_data, category)
-                        # Yield the news response as a single chunk
-                        yield news_response
-                        return
-                    else:
-                        yield "I couldn't fetch the latest news at the moment. Please try again later."
-                        return
+                 category = self._extract_news_category(user_message)
+                 logger.info(f"📰 Fetching news for category: {category}")
+                 news_service = skills_manager.get_skill("news")
+                 if news_service:
+                     news_data = news_service.get_news_headlines(category)
+                     if "error" not in news_data and "articles" in news_data and news_data["articles"]:
+                         news_response = self._format_news_response(news_data, category)
+                         # Yield the news response as a single chunk
+                         yield news_response
+                         return
+                     else:
+                         yield "I couldn't fetch the latest news at the moment. Please try again later."
+                         return
 
             history_context = self.format_chat_history_for_llm(chat_history)
             
             # Build the prompt with web search results if provided
             if web_search_results:
                 llm_prompt = f"""You are {self.persona}. Please respond directly to the user's current question using the provided web search results.
-
-IMPORTANT: Always answer the CURRENT user question directly. Do not give generic responses about your capabilities unless specifically asked "what can you do".
-
-WEB SEARCH RESULTS:
-{web_search_results}
-
-User's current question: "{user_message}"
-
-{history_context}
-
-Please provide a specific, helpful answer to the user's current question based on the web search results.
-Summarize the key information and cite relevant sources if appropriate. Keep your response under 3000 characters."""
+ 
+ IMPORTANT: Always answer the CURRENT user question directly. Do not give generic responses about your capabilities unless specifically asked "what can you do".
+ 
+ WEB SEARCH RESULTS:
+ {web_search_results}
+ 
+ User's current question: "{user_message}"
+ 
+ {history_context}
+ 
+ Please provide a specific, helpful answer to the user's current question based on the web search results.
+ Summarize the key information and cite relevant sources if appropriate. Keep your response under 3000 characters."""
             else:
                 llm_prompt = f"""You are {self.persona}. Please respond directly to the user's current question.
-
-IMPORTANT: Always answer the CURRENT user question directly. Do not give generic responses about your capabilities unless specifically asked "what can you do".
-
-User's current question: "{user_message}"
-
-{history_context}
-
-Please provide a specific, helpful answer to the user's current question. Keep your response under 3000 characters."""
+ 
+ IMPORTANT: Always answer the CURRENT user question directly. Do not give generic responses about your capabilities unless specifically asked "what can you do".
+ 
+ User's current question: "{user_message}"
+ 
+ {history_context}
+ 
+ Please provide a specific, helpful answer to the user's current question. Keep your response under 3000 characters."""
             
+            # Prepend language instruction
+            llm_prompt = f"{language_instruction}\n\n{llm_prompt}"
+
             # Use stream_generate_content for streaming response
             response_stream = self.model.generate_content(llm_prompt, stream=True)
-            
+
             accumulated_response = ""
             for chunk in response_stream:
                 if chunk.candidates and len(chunk.candidates) > 0:
