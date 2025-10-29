@@ -240,9 +240,8 @@ MIT License - see LICENSE file for details.
 
 - 📧 Email: talkeasyofficial100@gmail.com
 - 📞 Phone: +91 7470480121
-- 🌐 Website: talkeasy-three.vercel.app
-
-
+- 🌐 Website: [https://talkeasy.vercel.app](https://talkeasy.vercel.app)
+  
 ---
 
 **TalkEasy AI** - Experience the future of voice AI with enterprise-grade authentication and beautiful, responsive design! 🚀
