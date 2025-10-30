@@ -12,9 +12,16 @@ from datetime import datetime
 from dotenv import load_dotenv
 from typing import Dict, Optional
 
+# Load environment variables - only if .env file exists (for local development)
+try:
+    if os.path.exists('.env'):
+        load_dotenv()
+except Exception:
+    pass
+
 from models.schemas import (
-    VoiceChatResponse, 
-    ChatHistoryResponse, 
+    VoiceChatResponse,
+    ChatHistoryResponse,
     BackendStatusResponse,
     APIKeyConfig,
     ErrorType,
@@ -38,8 +45,6 @@ from utils.logging_config import setup_logging, get_logger
 from utils.constants import get_fallback_message
 from authlib.integrations.starlette_client import OAuth
 
-# Load environment variables
-load_dotenv()
 setup_logging()
 logger = get_logger(__name__)
 # Reduce noise from passlib bcrypt backend warnings when bcrypt package layout differs
@@ -52,6 +57,16 @@ from contextlib import asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     logger.info("🚀 Starting Voice Agent application...")
+
+    # Validate critical environment variables
+    critical_vars = ['JWT_SECRET_KEY', 'MONGODB_URL']
+    missing_critical = [var for var in critical_vars if not os.getenv(var)]
+
+    if missing_critical:
+        logger.error(f"❌ Missing critical environment variables: {', '.join(missing_critical)}")
+        logger.error("Application may not function properly without these variables")
+        # Don't exit, but log the issue
+
     config = initialize_services()
     if database_service:
         try:
