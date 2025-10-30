@@ -655,7 +655,7 @@ This is an automated message. Please do not reply directly to this email.
 
                             <!-- Call to Action Button -->
                             <div style="text-align: center; margin: 35px 0 25px 0;">
-                                <a href="https://talkeasy.app" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 50px; font-size: 16px; font-weight: bold; box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4); transition: transform 0.3s ease; text-transform: uppercase; letter-spacing: 1px;">
+                                <a href="" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 50px; font-size: 16px; font-weight: bold; box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4); transition: transform 0.3s ease; text-transform: uppercase; letter-spacing: 1px;">
                                     🚀 Start Using TalkEasy
                                 </a>
                             </div>
